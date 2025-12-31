@@ -9,15 +9,18 @@ message GetPuzzleRequest {
 }
 
 message GetPuzzleResponse {
-  message PositionSchema {
-    string piece = 1;
-    string placement = 2;
+  message Puzzle {
+    message PositionSchema {
+      string piece = 1;
+      string placement = 2;
+    }
+    string id = 1;
+    repeated PositionSchema game_state = 2;
+    string player_side = 3;
+    repeated string moves = 4;
+    int32 level = 5;
   }
-  string id = 1;
-  repeated PositionSchema game_state = 2;
-  string player_side = 3;
-  repeated string moves = 4;
-  int32 level = 5;
+  repeated Puzzle puzzles = 1;
 }
 
 message GetPuzzleByIdRequest {

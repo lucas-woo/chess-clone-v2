@@ -1,6 +1,6 @@
 syntax="proto3";
 
-option go_package = "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1/puzzles";
+option go_package = "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1/puzzlesv1";
 
 package puzzles.v1;
 
@@ -13,8 +13,40 @@ message GetPuzzleResponse {
     string piece = 1;
     string placement = 2;
   }
+  string id = 1;
+  repeated PositionSchema game_state = 2;
+  string player_side = 3;
+  repeated string moves = 4;
+  int32 level = 5;
+}
+
+message GetPuzzleByIdRequest {
+  string id = 1;
+}
+
+message GetPuzzleByIdResponse {
+  message PositionSchema {
+    string piece = 1;
+    string placement = 2;
+  }
+  string id = 1;
+  repeated PositionSchema game_state = 2;
+  string player_side = 3;
+  repeated string moves = 4;
+  int32 level = 5;
+}
+
+message CreatePuzzleRequest {
+  message PositionSchema {
+    string piece = 1;
+    string placement = 2;
+  }
   repeated PositionSchema game_state = 1;
   string player_side = 2;
   repeated string moves = 3;
-  int32 level = 4;
+  int32 level = 4;  
+}
+
+message CreatePuzzleResponse {
+  string id = 1;
 }

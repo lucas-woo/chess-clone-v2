@@ -1,0 +1,11 @@
+syntax="proto3";
+
+option go_package = "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1/puzzles";
+
+package puzzles.v1;
+
+import "puzzles/v1/puzzles.proto";
+
+service PuzzlesService {
+  rpc GetPuzzle(GetPuzzleRequest) returns (GetPuzzleResponse);
+}

@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: puzzles/v1/service.proto
 
-package puzzles
+package puzzlesv1
 
 import (
 	context "context"
@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PuzzlesService_GetPuzzle_FullMethodName = "/puzzles.v1.PuzzlesService/GetPuzzle"
+	PuzzlesService_GetPuzzle_FullMethodName     = "/puzzles.v1.PuzzlesService/GetPuzzle"
+	PuzzlesService_CreatePuzzle_FullMethodName  = "/puzzles.v1.PuzzlesService/CreatePuzzle"
+	PuzzlesService_GetPuzzleById_FullMethodName = "/puzzles.v1.PuzzlesService/GetPuzzleById"
 )
 
 // PuzzlesServiceClient is the client API for PuzzlesService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PuzzlesServiceClient interface {
 	GetPuzzle(ctx context.Context, in *GetPuzzleRequest, opts ...grpc.CallOption) (*GetPuzzleResponse, error)
+	CreatePuzzle(ctx context.Context, in *CreatePuzzleRequest, opts ...grpc.CallOption) (*CreatePuzzleResponse, error)
+	GetPuzzleById(ctx context.Context, in *GetPuzzleByIdRequest, opts ...grpc.CallOption) (*GetPuzzleByIdResponse, error)
 }
 
 type puzzlesServiceClient struct {
@@ -47,11 +51,33 @@ func (c *puzzlesServiceClient) GetPuzzle(ctx context.Context, in *GetPuzzleReque
 	return out, nil
 }
 
+func (c *puzzlesServiceClient) CreatePuzzle(ctx context.Context, in *CreatePuzzleRequest, opts ...grpc.CallOption) (*CreatePuzzleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePuzzleResponse)
+	err := c.cc.Invoke(ctx, PuzzlesService_CreatePuzzle_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *puzzlesServiceClient) GetPuzzleById(ctx context.Context, in *GetPuzzleByIdRequest, opts ...grpc.CallOption) (*GetPuzzleByIdResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPuzzleByIdResponse)
+	err := c.cc.Invoke(ctx, PuzzlesService_GetPuzzleById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PuzzlesServiceServer is the server API for PuzzlesService service.
 // All implementations must embed UnimplementedPuzzlesServiceServer
 // for forward compatibility.
 type PuzzlesServiceServer interface {
 	GetPuzzle(context.Context, *GetPuzzleRequest) (*GetPuzzleResponse, error)
+	CreatePuzzle(context.Context, *CreatePuzzleRequest) (*CreatePuzzleResponse, error)
+	GetPuzzleById(context.Context, *GetPuzzleByIdRequest) (*GetPuzzleByIdResponse, error)
 	mustEmbedUnimplementedPuzzlesServiceServer()
 }
 
@@ -64,6 +90,12 @@ type UnimplementedPuzzlesServiceServer struct{}
 
 func (UnimplementedPuzzlesServiceServer) GetPuzzle(context.Context, *GetPuzzleRequest) (*GetPuzzleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzle not implemented")
+}
+func (UnimplementedPuzzlesServiceServer) CreatePuzzle(context.Context, *CreatePuzzleRequest) (*CreatePuzzleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePuzzle not implemented")
+}
+func (UnimplementedPuzzlesServiceServer) GetPuzzleById(context.Context, *GetPuzzleByIdRequest) (*GetPuzzleByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzleById not implemented")
 }
 func (UnimplementedPuzzlesServiceServer) mustEmbedUnimplementedPuzzlesServiceServer() {}
 func (UnimplementedPuzzlesServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +136,42 @@ func _PuzzlesService_GetPuzzle_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PuzzlesService_CreatePuzzle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePuzzleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PuzzlesServiceServer).CreatePuzzle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PuzzlesService_CreatePuzzle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PuzzlesServiceServer).CreatePuzzle(ctx, req.(*CreatePuzzleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PuzzlesService_GetPuzzleById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPuzzleByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PuzzlesServiceServer).GetPuzzleById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PuzzlesService_GetPuzzleById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PuzzlesServiceServer).GetPuzzleById(ctx, req.(*GetPuzzleByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PuzzlesService_ServiceDesc is the grpc.ServiceDesc for PuzzlesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +182,14 @@ var PuzzlesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPuzzle",
 			Handler:    _PuzzlesService_GetPuzzle_Handler,
+		},
+		{
+			MethodName: "CreatePuzzle",
+			Handler:    _PuzzlesService_CreatePuzzle_Handler,
+		},
+		{
+			MethodName: "GetPuzzleById",
+			Handler:    _PuzzlesService_GetPuzzleById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

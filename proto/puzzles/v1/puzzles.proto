@@ -1,0 +1,20 @@
+syntax="proto3";
+
+option go_package = "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1/puzzles";
+
+package puzzles.v1;
+
+message GetPuzzleRequest {
+  string level = 1;
+}
+
+message GetPuzzleResponse {
+  message PositionSchema {
+    string piece = 1;
+    string placement = 2;
+  }
+  repeated PositionSchema game_state = 1;
+  string player_side = 2;
+  repeated string moves = 3;
+  int32 level = 4;
+}

@@ -7,7 +7,12 @@ package puzzles.v1;
 import "puzzles/v1/puzzles.proto";
 
 service PuzzlesService {
+
   rpc GetPuzzle(GetPuzzleRequest) returns (GetPuzzleResponse);
+
   rpc CreatePuzzle(CreatePuzzleRequest) returns (CreatePuzzleResponse);
+
   rpc GetPuzzleById(GetPuzzleByIdRequest) returns (GetPuzzleByIdResponse);
+
+  rpc DeletePuzzleById(DeletePuzzleByIdRequest) returns (DeletePuzzleByIdResponse);
 }

@@ -50,3 +50,11 @@ message CreatePuzzleRequest {
 message CreatePuzzleResponse {
   string id = 1;
 }
+
+message DeletePuzzleByIdRequest {
+  string id = 1;
+}
+
+message DeletePuzzleByIdResponse {
+  bool id = 1;
+}

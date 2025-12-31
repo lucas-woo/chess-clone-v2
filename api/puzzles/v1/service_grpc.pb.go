@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PuzzlesService_GetPuzzle_FullMethodName     = "/puzzles.v1.PuzzlesService/GetPuzzle"
-	PuzzlesService_CreatePuzzle_FullMethodName  = "/puzzles.v1.PuzzlesService/CreatePuzzle"
-	PuzzlesService_GetPuzzleById_FullMethodName = "/puzzles.v1.PuzzlesService/GetPuzzleById"
+	PuzzlesService_GetPuzzle_FullMethodName        = "/puzzles.v1.PuzzlesService/GetPuzzle"
+	PuzzlesService_CreatePuzzle_FullMethodName     = "/puzzles.v1.PuzzlesService/CreatePuzzle"
+	PuzzlesService_GetPuzzleById_FullMethodName    = "/puzzles.v1.PuzzlesService/GetPuzzleById"
+	PuzzlesService_DeletePuzzleById_FullMethodName = "/puzzles.v1.PuzzlesService/DeletePuzzleById"
 )
 
 // PuzzlesServiceClient is the client API for PuzzlesService service.
@@ -31,6 +32,7 @@ type PuzzlesServiceClient interface {
 	GetPuzzle(ctx context.Context, in *GetPuzzleRequest, opts ...grpc.CallOption) (*GetPuzzleResponse, error)
 	CreatePuzzle(ctx context.Context, in *CreatePuzzleRequest, opts ...grpc.CallOption) (*CreatePuzzleResponse, error)
 	GetPuzzleById(ctx context.Context, in *GetPuzzleByIdRequest, opts ...grpc.CallOption) (*GetPuzzleByIdResponse, error)
+	DeletePuzzleById(ctx context.Context, in *DeletePuzzleByIdRequest, opts ...grpc.CallOption) (*DeletePuzzleByIdResponse, error)
 }
 
 type puzzlesServiceClient struct {
@@ -71,6 +73,16 @@ func (c *puzzlesServiceClient) GetPuzzleById(ctx context.Context, in *GetPuzzleB
 	return out, nil
 }
 
+func (c *puzzlesServiceClient) DeletePuzzleById(ctx context.Context, in *DeletePuzzleByIdRequest, opts ...grpc.CallOption) (*DeletePuzzleByIdResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePuzzleByIdResponse)
+	err := c.cc.Invoke(ctx, PuzzlesService_DeletePuzzleById_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PuzzlesServiceServer is the server API for PuzzlesService service.
 // All implementations must embed UnimplementedPuzzlesServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type PuzzlesServiceServer interface {
 	GetPuzzle(context.Context, *GetPuzzleRequest) (*GetPuzzleResponse, error)
 	CreatePuzzle(context.Context, *CreatePuzzleRequest) (*CreatePuzzleResponse, error)
 	GetPuzzleById(context.Context, *GetPuzzleByIdRequest) (*GetPuzzleByIdResponse, error)
+	DeletePuzzleById(context.Context, *DeletePuzzleByIdRequest) (*DeletePuzzleByIdResponse, error)
 	mustEmbedUnimplementedPuzzlesServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedPuzzlesServiceServer) CreatePuzzle(context.Context, *CreatePu
 }
 func (UnimplementedPuzzlesServiceServer) GetPuzzleById(context.Context, *GetPuzzleByIdRequest) (*GetPuzzleByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzleById not implemented")
+}
+func (UnimplementedPuzzlesServiceServer) DeletePuzzleById(context.Context, *DeletePuzzleByIdRequest) (*DeletePuzzleByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePuzzleById not implemented")
 }
 func (UnimplementedPuzzlesServiceServer) mustEmbedUnimplementedPuzzlesServiceServer() {}
 func (UnimplementedPuzzlesServiceServer) testEmbeddedByValue()                        {}
@@ -172,6 +188,24 @@ func _PuzzlesService_GetPuzzleById_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PuzzlesService_DeletePuzzleById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePuzzleByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PuzzlesServiceServer).DeletePuzzleById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PuzzlesService_DeletePuzzleById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PuzzlesServiceServer).DeletePuzzleById(ctx, req.(*DeletePuzzleByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PuzzlesService_ServiceDesc is the grpc.ServiceDesc for PuzzlesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var PuzzlesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPuzzleById",
 			Handler:    _PuzzlesService_GetPuzzleById_Handler,
+		},
+		{
+			MethodName: "DeletePuzzleById",
+			Handler:    _PuzzlesService_DeletePuzzleById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

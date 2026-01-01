@@ -51,11 +51,25 @@ func (s *Server) CreatePuzzle(_ context.Context, rq *puzzlesv1.CreatePuzzleReque
 }
 
 func (s *Server) GetPuzzleById(_ context.Context, rq *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzleById not implemented")
+	id, err := parseGetPuzzleByIdRequest(rq);
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error());
+	}
+
+	puzzle := s.store.GetPuzzleByID(id)
+
+	return convertGetPuzzleByIdResponse(puzzle), nil
 }
 
 func (s *Server) DeletePuzzleById(_ context.Context, rq *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePuzzleById not implemented")
+	id, err := parseDeletePuzzleByIdRequest(rq);
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error());
+	}
+	s.store.DeletePuzzleByID(id);
+	return &puzzlesv1.DeletePuzzleByIdResponse{
+		Deleted: true,
+	}, nil
 }
 
 func parseGetPuzzleRequest (rq *puzzlesv1.GetPuzzleRequest) (int32, error) {
@@ -143,4 +157,36 @@ func convertCreatePuzzleResponse (newUUID uuid.UUID) *puzzlesv1.CreatePuzzleResp
 	return &puzzlesv1.CreatePuzzleResponse{
 		Id: newUUID.String(),
 	}
+}
+
+func parseGetPuzzleByIdRequest (rq *puzzlesv1.GetPuzzleByIdRequest) (uuid.UUID, error) {
+	parsed, err := uuid.Parse(rq.Id);
+	if err != nil {
+		return uuid.New(), err
+	}
+	return parsed, nil
+}
+
+func convertGetPuzzleByIdResponse (puzzle *puzzlestore.Puzzle) *puzzlesv1.GetPuzzleByIdResponse {
+	var gameStateArr []*puzzlesv1.GetPuzzleByIdResponse_PositionSchema = make([]*puzzlesv1.GetPuzzleByIdResponse_PositionSchema, 0);
+	for _, v := range puzzle.GameState {
+		gameStateArr = append(gameStateArr, &puzzlesv1.GetPuzzleByIdResponse_PositionSchema{
+			Piece: v.Piece,
+			Placement: v.Placement,
+		})
+	}
+	return &puzzlesv1.GetPuzzleByIdResponse{
+		PlayerSide: puzzle.PlayerSide,
+		GameState: gameStateArr,
+		Level: puzzle.Level,
+		Moves: puzzle.Moves,
+	}
+}
+
+func parseDeletePuzzleByIdRequest(rq *puzzlesv1.DeletePuzzleByIdRequest) (uuid.UUID, error) {
+	parsed, err := uuid.Parse(rq.Id);
+	if err != nil {
+		return uuid.New(), err
+	}
+	return parsed, nil
 }

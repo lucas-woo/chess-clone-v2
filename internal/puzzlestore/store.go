@@ -62,3 +62,7 @@ func (s *Store) GetPuzzles (level int32) []*Puzzle {
 	}
 	return rN
 }
+
+func NewStore () *Store {
+	return &Store{}
+}

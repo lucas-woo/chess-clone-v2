@@ -38,8 +38,16 @@ func (s *Server) GetPuzzle(_ context.Context,rq *puzzlesv1.GetPuzzleRequest) (*p
 
 func (s *Server) CreatePuzzle(_ context.Context, rq *puzzlesv1.CreatePuzzleRequest) (*puzzlesv1.CreatePuzzleResponse, error) {
 
+	v, err := parseCreatePuzzleRequest(rq);
 
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePuzzle not implemented")
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error());
+	}
+
+	createdUUID := s.store.CreateNewPuzzle(v);
+
+	return convertCreatePuzzleResponse(createdUUID), nil
+
 }
 
 func (s *Server) GetPuzzleById(_ context.Context, rq *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
@@ -56,7 +64,8 @@ func parseGetPuzzleRequest (rq *puzzlesv1.GetPuzzleRequest) (int32, error) {
 	val64, err := strconv.Atoi(rq.Level)
 
 	if err != nil {
-		errors.Join(err, errors.New("Couldn't parse GetPuzzleRequest"))
+		errs = errors.Join(errs, errors.New("Couldn't parse GetPuzzleRequest"));
+		errs = errors.Join(errs, err);
 		return 0, errs
 	}
 	if val64 < 1 {
@@ -96,5 +105,42 @@ func convertPuzzleArrToGetPuzzleResponse(puzzleArr []*puzzlestore.Puzzle) *puzzl
 }
 
 func parseCreatePuzzleRequest (rq *puzzlesv1.CreatePuzzleRequest) (*puzzlestore.Puzzle, error) {
-	return nil, nil
+	var errs error
+
+	if rq.Level <= 0 { 
+		errs = errors.Join(errs, errors.New("Level should be more than 0"))		
+	}
+	if len(rq.Moves) == 0 {
+		errs = errors.Join(errs, errors.New("Moves should not be empty"))
+	}
+	if rq.PlayerSide != "black" && rq.PlayerSide != "white" {
+		errs = errors.Join(errs, errors.New(`Player Side should either be "black" or "white"`))
+	}
+	if len(rq.GameState) == 0 {
+		errs = errors.Join(errs, errors.New("GameState should not be empty"))
+	}
+	if errs != nil {
+		return nil, errs
+	}
+
+	var gameStateArr []*puzzlestore.Position = make([]*puzzlestore.Position, 0);
+	for _, v := range rq.GameState {
+		gameStateArr = append(gameStateArr, &puzzlestore.Position{
+			Piece: v.Piece,
+			Placement: v.Placement,
+		})
+	}
+
+	return &puzzlestore.Puzzle{
+		GameState: gameStateArr,
+		PlayerSide: rq.PlayerSide,
+		Level: rq.Level,
+		Moves: rq.Moves,
+	}, nil
+}
+
+func convertCreatePuzzleResponse (newUUID uuid.UUID) *puzzlesv1.CreatePuzzleResponse {
+	return &puzzlesv1.CreatePuzzleResponse{
+		Id: newUUID.String(),
+	}
 }

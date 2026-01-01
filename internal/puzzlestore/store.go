@@ -15,16 +15,16 @@ type Store struct {
 }
 
 type Puzzle struct {
-	id uuid.UUID
-	gameState []*Position;
-	playerSide string
-	moves []string
-	level int32
+	ID uuid.UUID
+	GameState []*Position;
+	PlayerSide string
+	Moves []string
+	Level int32
 }
 
 type Position struct {
-	piece string
-	placement string
+	Piece string
+	Placement string
 }
 
 func (s *Store) CreateNewPuzzle (newPuzzle *Puzzle) uuid.UUID {
@@ -53,7 +53,7 @@ func (s *Store) DeletePuzzleByID (id uuid.UUID) {
 func (s *Store) GetPuzzles (level int32) []*Puzzle {
 	var rN []*Puzzle = make([]*Puzzle, 0)
 	for _, v := range s.store {
-		if v.level == level {
+		if v.Level == level {
 			rN = append(rN, v)
 		}
 		if len(rN) > 4 {

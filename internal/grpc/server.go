@@ -190,3 +190,9 @@ func parseDeletePuzzleByIdRequest(rq *puzzlesv1.DeletePuzzleByIdRequest) (uuid.U
 	}
 	return parsed, nil
 }
+
+func NewServer (newStore *puzzlestore.Store) *Server {
+	return &Server{
+		store: newStore,
+	};
+}

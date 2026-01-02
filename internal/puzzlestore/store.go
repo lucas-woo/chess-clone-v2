@@ -64,5 +64,8 @@ func (s *Store) GetPuzzles (level int32) []*Puzzle {
 }
 
 func NewStore () *Store {
-	return &Store{}
+	return &Store{
+		store: make(map[uuid.UUID]*Puzzle),
+		lock: sync.RWMutex{},
+	}
 }

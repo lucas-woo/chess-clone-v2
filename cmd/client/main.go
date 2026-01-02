@@ -20,23 +20,6 @@ func main() {
 
 	ctx := context.Background();
 
-	v1, err := client.GetPuzzleById(ctx, &puzzlesv1.GetPuzzleByIdRequest{
-
-	})
-	if err != nil {
-		fmt.Printf("err getting pbuid: %v",err)
-	} else {
-		fmt.Println(v1)
-	}
-
-	v2, err2 := client.CreatePuzzle(ctx, &puzzlesv1.CreatePuzzleRequest{
-
-	})
-	if err2 != nil {
-		fmt.Printf("err: %v",err2)
-	} else {
-		fmt.Println(v2)
-	}
 	
 	v3, err3 := client.CreatePuzzle(ctx, &puzzlesv1.CreatePuzzleRequest{
 		PlayerSide: "white",
@@ -51,5 +34,12 @@ func main() {
 		fmt.Printf("err: %v",err3)
 	} else {
 		fmt.Println(v3)
-	}	
+	}
+	v, err := client.GetPuzzleById(ctx, &puzzlesv1.GetPuzzleByIdRequest{
+		Id: v3.Id,
+	})	
+	if err != nil {
+		log.Fatalf("error getting puzzle by id: %v", err)
+	}
+	fmt.Println(v)
 }

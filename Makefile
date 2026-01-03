@@ -11,4 +11,5 @@ run-server: cmd/server/main.go
 	go run cmd/server/main.go
 
 run-client: cmd/client/main.go
-	go run cmd/client/main.go
+	clear;
+	GIN_MODE=release go run cmd/client/main.go;

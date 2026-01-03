@@ -1,45 +1,14 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
-	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server"
 )
 
-
 func main() {
-	conn, err := grpc.NewClient("localhost:50051" ,grpc.WithTransportCredentials(insecure.NewCredentials()));
+	server := server.CreateServer()
+	err := server.Run(":3000");
 	if err != nil {
-		log.Fatalf("error with client %v", err);
+		log.Fatalf("error running client %v",err)
 	}
-
-	client := puzzlesv1.NewPuzzlesServiceClient(conn);
-
-	ctx := context.Background();
-
-	
-	v3, err3 := client.CreatePuzzle(ctx, &puzzlesv1.CreatePuzzleRequest{
-		PlayerSide: "white",
-		Moves: []string{"e2 e4", "e7 e5"},
-		Level: 3,
-		GameState: []*puzzlesv1.CreatePuzzleRequest_PositionSchema{&puzzlesv1.CreatePuzzleRequest_PositionSchema{
-			Piece: "wp",
-			Placement: "e2",
-		}},
-	})
-	if err3 != nil {
-		fmt.Printf("err: %v",err3)
-	} else {
-		fmt.Println(v3)
-	}
-	v, err := client.GetPuzzleById(ctx, &puzzlesv1.GetPuzzleByIdRequest{
-		Id: v3.Id,
-	})	
-	if err != nil {
-		log.Fatalf("error getting puzzle by id: %v", err)
-	}
-	fmt.Println(v)
 }

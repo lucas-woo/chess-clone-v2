@@ -1,11 +1,25 @@
 package middlewares
 
-// import "github.com/gin-gonic/gin";
+import (
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"path/filepath"
+	"github.com/gin-gonic/gin"
+);
 
-// func TempLogger() gin.HandlerFunc {
+func TempLogger() {
+	loggerPath := filepath.Join("logs", "gin.log")
+	file, err := os.Create(loggerPath);
+	if err != nil {
+		log.Fatal("logger failed")
+	}
+	gin.DefaultWriter = io.MultiWriter(file, os.Stdout)
+}
 
-// }
-
-// func Logger() gin.HandlerFunc {
-
-// }
+func Logger() gin.HandlerFunc {
+	return gin.LoggerWithFormatter(func(p gin.LogFormatterParams) string {
+		return fmt.Sprintf("%s - %s - %d", p.Method, p.Path, p.StatusCode)
+	})
+}

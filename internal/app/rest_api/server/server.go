@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
+
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server/router"
 	"github.com/gin-gonic/gin"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/middlewares"
-	// create_puzzle_client "github.com/lucas-woo/chess-clone-v2/internal/grpc/puzzles/create"
-	// "context"
+	create_puzzle_client "github.com/lucas-woo/chess-clone-v2/internal/grpc/puzzles/create"
 );
 
 func CreateServer() *gin.Engine {
@@ -15,9 +17,11 @@ func CreateServer() *gin.Engine {
 
 	newServer.Use(middlewares.Logger(), gin.Recovery())
 
-	// puzzleServer := create_puzzle_client.CreateGRPCClient()
-	// ctx := context.Background()
-	// will add routes here
+	puzzleServer := create_puzzle_client.CreateGRPCClient()
+	
+	ctx := context.Background()
+
+	router.InitializeRouter(ctx, newServer, puzzleServer)
 
 	return newServer;
 }

@@ -25,3 +25,7 @@ func CreateServer() *gin.Engine {
 
 	return newServer;
 }
+
+func ConnectRedis() {
+	
+}

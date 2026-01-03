@@ -2,7 +2,13 @@ package main
 
 import (
 	"log"
+
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server"
+	"github.com/redis/go-redis/v9"
+)
+
+var (
+	redisInstance *redis.Client
 )
 
 func main() {

@@ -8,5 +8,5 @@ import (
 )
 
 func InitializeRouter(ctx context.Context, router *gin.Engine, grpcClient puzzlesv1.PuzzlesServiceClient) {
-	InitializeAuthRoutes(router)
+	InitializeAuthRoutes(router);
 }

@@ -8,9 +8,6 @@ var (
 	CookieSessionIDString = "session_id"
 )
 
-type UserSession struct {
-	SessionID string `json:"session_id" binding:"required"`
-}
 
 func InitRedisClient(rdb *redis.Client) {
 	RedisClient = rdb

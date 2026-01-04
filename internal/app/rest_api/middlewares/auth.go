@@ -6,13 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/models"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/repositories"
 )
 
 func IsAlreadyLoggedIn() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		var userSessionID config.UserSession;
+		var userSessionID models.UserSession;
 
 		sessionId, err := ctx.Cookie(config.CookieSessionIDString);
 
@@ -41,7 +42,7 @@ func IsAlreadyLoggedIn() gin.HandlerFunc {
 func ProtectedRoute() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		
-		var userSessionID config.UserSession;
+		var userSessionID models.UserSession;
 
 		sessionId, err := ctx.Cookie(config.CookieSessionIDString);
 

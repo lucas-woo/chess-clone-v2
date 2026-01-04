@@ -9,14 +9,17 @@ import (
 
 func IsAlreadtLoggedIn() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		repositories.ValidateSessionID(ctx.Request.Context(), "")
+		isValid, err := repositories.ValidateSessionID(ctx.Request.Context(), "");
+
+		if err != nil {
+			ctx.AbortWithError(http.StatusInternalServerError, err)
+		}
+		if isValid {
+			ctx.AbortWithStatus(http.StatusContinue)
+		}
+
 	}
 }
-
-func ReturnServerError(ctx *gin.Context) {
-	ctx.JSON(http.StatusInternalServerError, "")
-}
-
 
 func ProtectedRoute() gin.HandlerFunc {
 	return func(ctx *gin.Context) {

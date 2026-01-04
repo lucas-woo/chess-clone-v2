@@ -8,6 +8,10 @@ import (
 
 func main() {
 	
+	if err := server.InitializeEnv(); err != nil {
+		log.Fatal(err.Error())
+	}
+	
 	if err := server.ConnectRedis(); err != nil {
 		log.Fatal(err.Error())
 	}

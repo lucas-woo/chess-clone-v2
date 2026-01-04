@@ -7,9 +7,9 @@ import (
 )
 
 func InitializeAuthRoutes(r *gin.Engine) {
-	r.POST("/signup", middlewares.IsAlreadtLoggedIn(), handlers.SignUp())
+	r.POST("/signup", middlewares.IsAlreadyLoggedIn(), handlers.SignUp())
 	r.POST("/login")
 	r.POST("/logout")
 	r.GET("verify-username");
-	r.PUT("update-username");
+	r.PUT("update-username", middlewares.ProtectedRoute());
 }

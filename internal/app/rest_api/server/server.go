@@ -3,10 +3,12 @@ package server
 import (
 	"context"
 	"errors"
-	"os";
+	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/middlewares"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server/router"
 	create_puzzle_client "github.com/lucas-woo/chess-clone-v2/internal/grpc/puzzles/create"
@@ -15,48 +17,46 @@ import (
 );
 
 
-var (
-	redisClient *redis.Client
-)
 
-func CreateServer() *gin.Engine {
+func CreateServer(redisClient *redis.Client) *gin.Engine {
 
-	middlewares.TempLogger()
+	middlewares.Logger()
 
 	newServer := gin.New();
 
-	newServer.Use(middlewares.Logger(), gin.Recovery())
+	newServer.Use(middlewares.LoggerFunc(), gin.Recovery())
 
 	puzzleServer := create_puzzle_client.CreateGRPCClient()
 	
 	ctx := context.Background()
 
-	router.InitializeRouter(ctx, newServer, puzzleServer)
+	router.InitializeRouter(ctx, newServer, puzzleServer, redisClient)
 
 	return newServer;
 }
 
-func ConnectRedis() error {
+func ConnectRedis() (*redis.Client, error) {
 	redisAddr := os.Getenv("REDIS_ADDR");
 	redisPassword := os.Getenv("REDIS_PASS");
 	redisDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
 	if err != nil {
-		return err
+		return nil, err
 	}	
 	redisProtocol, err := strconv.Atoi(os.Getenv("REDIS_PROTOCOL"))
 	if err != nil {
-		return err
+		return nil, err
 	}	
-	redisClient = redis.NewClient(&redis.Options{
+	rdb := redis.NewClient(&redis.Options{
         Addr: redisAddr,
         Password: redisPassword, 
         DB: redisDB,  
 				Protocol: redisProtocol,              
 	})
-	if redisClient == nil {
-		return errors.New("error connecting to redis client")
+	if rdb == nil {
+		return nil, errors.New("error connecting to redis client")
 	}
-	return nil
+	fmt.Println("connected redis client")
+	return rdb, nil
 }
 
 func InitializeEnv() error {

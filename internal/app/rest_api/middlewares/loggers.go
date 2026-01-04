@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 );
 
-func TempLogger() {
+func Logger() {
 	loggerPath := filepath.Join("logs", "gin.log")
 	file, err := os.Create(loggerPath);
 	if err != nil {
@@ -18,7 +18,7 @@ func TempLogger() {
 	gin.DefaultWriter = io.MultiWriter(file, os.Stdout)
 }
 
-func Logger() gin.HandlerFunc {
+func LoggerFunc() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(p gin.LogFormatterParams) string {
 		return fmt.Sprintf("%s - %s - %d", p.Method, p.Path, p.StatusCode)
 	})

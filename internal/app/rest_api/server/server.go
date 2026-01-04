@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -27,10 +26,8 @@ func CreateServer() *gin.Engine {
 	newServer.Use(middlewares.LoggerFunc(), gin.Recovery())
 
 	puzzleServer := create_puzzle_client.CreateGRPCClient()
-	
-	ctx := context.Background()
 
-	router.InitializeRouter(ctx, newServer, puzzleServer)
+	router.InitializeRouter(newServer, puzzleServer)
 
 	return newServer;
 }

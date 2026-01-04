@@ -8,6 +8,6 @@ import (
 )
 
 func InitializeRouter(router *gin.Engine, grpcClient puzzlesv1.PuzzlesServiceClient) {
-
+	InitializeTestRoutes(router, grpcClient)
 	InitializeAuthRoutes(router);
 }

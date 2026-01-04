@@ -15,8 +15,6 @@ var (
 
 func main() {
 
-	defer RedisClient.Close()
-	
 	if err := server.InitializeEnv(); err != nil {
 		log.Fatal(err.Error())
 	}
@@ -25,8 +23,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
 	RedisClient = rdb
+	defer RedisClient.Close()
+
 	config.InitRedisClient(RedisClient)
+
 	httpServer := server.CreateServer()
 	if err := httpServer.Run(":3000"); err != nil {
 		log.Fatalf("error running client %v",err)

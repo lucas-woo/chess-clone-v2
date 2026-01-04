@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server"
 	"github.com/redis/go-redis/v9"
 )
@@ -25,7 +26,8 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	RedisClient = rdb
-	httpServer := server.CreateServer(RedisClient)
+	config.InitRedisClient(RedisClient)
+	httpServer := server.CreateServer()
 	if err := httpServer.Run(":3000"); err != nil {
 		log.Fatalf("error running client %v",err)
 	}

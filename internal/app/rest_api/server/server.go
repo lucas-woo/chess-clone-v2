@@ -18,7 +18,7 @@ import (
 
 
 
-func CreateServer(redisClient *redis.Client) *gin.Engine {
+func CreateServer() *gin.Engine {
 
 	middlewares.Logger()
 
@@ -30,7 +30,7 @@ func CreateServer(redisClient *redis.Client) *gin.Engine {
 	
 	ctx := context.Background()
 
-	router.InitializeRouter(ctx, newServer, puzzleServer, redisClient)
+	router.InitializeRouter(ctx, newServer, puzzleServer)
 
 	return newServer;
 }

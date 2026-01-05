@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"net"
 	"log"
 	"google.golang.org/grpc"
@@ -25,7 +25,7 @@ func main () {
 	puzzlesv1.RegisterPuzzlesServiceServer(grpcServer, puzzlegrpcserver.NewServer(puzzlestore.NewStore()))
 	healthServer := health.NewServer()
 	healthv1.RegisterHealthServer(grpcServer, healthServer);
-
+	fmt.Println("puzzle server running")
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("err in starting grpc server: %v",err)
 	}

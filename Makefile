@@ -7,8 +7,11 @@ lint-proto:
 generate-proto:
 	go tool buf generate --template buf.gen.yaml
 
-run-server: cmd/server/main.go
-	go run cmd/server/main.go
+run-puzzle-server: cmd/servers/puzzle/main.go
+	go run cmd/servers/puzzle/main.go
+
+run-auth-server: cmd/servers/auth/main.go
+	go run cmd/servers/auth/main.go
 
 run-client: cmd/client/main.go
 	clear;

@@ -1,0 +1,5 @@
+syntax="proto3";
+
+option go_package = "github.com/lucas-woo/chess-clone-v2/api/authentication/v1/authv1";
+
+package authentication.v1;

@@ -21,11 +21,10 @@ func ExtractPuzzle() gin.HandlerFunc {
 		convertedPuzzle, err := utils.ConvertCreatePuzzleRequestModel(puzzle)
 
 		if err != nil {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			ctx.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-
-		ctx.Set("created_puzzle", convertedPuzzle)
+		ctx.Set(models.CreatedPuzzleKey, convertedPuzzle)
 		ctx.Next()
 	}
 }

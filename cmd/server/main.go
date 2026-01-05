@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/health";
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1";
 	puzzlestore "github.com/lucas-woo/chess-clone-v2/internal/puzzlestore";
-	puzzlegrpcserver "github.com/lucas-woo/chess-clone-v2/internal/grpc";
+	puzzlegrpcserver "github.com/lucas-woo/chess-clone-v2/internal/grpc/puzzles";
 	healthv1 "google.golang.org/grpc/health/grpc_health_v1"
 
 )

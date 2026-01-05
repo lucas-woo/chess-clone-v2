@@ -12,7 +12,8 @@ import (
 func ExtractPuzzle() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var puzzle models.CreatePuzzleRequest;
-		err := ctx.BindJSON(&puzzle);
+		
+		err := ctx.ShouldBindBodyWithJSON(&puzzle);
 
 		if err != nil {
 			ctx.AbortWithStatus(http.StatusBadRequest)

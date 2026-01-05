@@ -12,12 +12,12 @@ message SignUpUserRequest {
 
 message SignUpUserResponse {
   enum SignUpError {
-    NIL = 0;
-    INVAlID_EMAIL = 1;
-    EMAIL_ALREADY_TAKEN = 2;
-    INVALID_USERNAME = 3;
-    USERNAME_ALREADY_TAKEN = 4;
-    INVALID_PASSWORD = 5;
+    SIGN_UP_ERROR_UNSPECIFIED = 0;
+    SIGN_UP_ERROR_INVALID_EMAIL = 1;
+    SIGN_UP_ERROR_EMAIL_ALREADY_TAKEN = 2;
+    SIGN_UP_ERROR_INVALID_USERNAME = 3;
+    SIGN_UP_ERROR_USERNAME_ALREADY_TAKEN = 4;
+    SIGN_UP_ERROR_INVALID_PASSWORD = 5;
   }
   SignUpError signup_error = 1;
   string session_id = 2;
@@ -31,9 +31,25 @@ message LoginUserRequest {
 
 message LoginUserResponse {
   enum LoginError {
-    NIL = 0;
-    INVAlID_CREDENTIALS = 1;
+    LOGIN_ERROR_UNSPECIFIED = 0;
+    LOGIN_ERROR_INVALID_CREDENTIALS = 1;
   }
   LoginError login_error = 1;
   string session_id = 2;
+}
+
+message LogoutUserRequest {
+  string session_id = 1;
+}
+
+message LogoutUserResponse {
+  bool logged_out = 1;
+}
+
+message VerifyUsernameRequest {
+  string username = 1;
+}
+
+message VerifyUsernameResponse {
+  bool username_taken = 1;
 }

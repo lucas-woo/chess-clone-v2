@@ -11,14 +11,29 @@ message SignUpUserRequest {
 }
 
 message SignUpUserResponse {
+  enum SignUpError {
+    NIL = 0;
+    INVAlID_EMAIL = 1;
+    EMAIL_ALREADY_TAKEN = 2;
+    INVALID_USERNAME = 3;
+    USERNAME_ALREADY_TAKEN = 4;
+    INVALID_PASSWORD = 5;
+  }
   SignUpError signup_error = 1;
   string session_id = 2;
 }
 
-Enum SignUpError {
-  INVAlID_EMAIL = 0;
-  EMAIL_ALREADY_TAKEN = 1;
-  INVALID_USERNAME = 2
-  USERNAME_ALREADY_TAKEN = 3;
-  INVALID_PASSWORD = 4;
+message LoginUserRequest {
+  string username = 1;
+  string hashed_password = 2;
+  string email = 3;  
+}
+
+message LoginUserResponse {
+  enum LoginError {
+    NIL = 0;
+    INVAlID_CREDENTIALS = 1;
+  }
+  LoginError login_error = 1;
+  string session_id = 2;
 }

@@ -1,14 +1,31 @@
 package middlewares
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/models"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/utils"
+)
 
 
 func ExtractPuzzle() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var puzzle models.CreatePuzzleRequest;
+		err := ctx.BindJSON(&puzzle);
 
+		if err != nil {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		convertedPuzzle, err := utils.ConvertCreatePuzzleRequestModel(puzzle)
 
+		if err != nil {
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
 
+		ctx.Set("created_puzzle", convertedPuzzle)
 		ctx.Next()
 	}
 }

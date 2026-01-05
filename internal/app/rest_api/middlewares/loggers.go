@@ -20,6 +20,6 @@ func Logger() {
 
 func LoggerFunc() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(p gin.LogFormatterParams) string {
-		return fmt.Sprintf("%s - %s - %d", p.Method, p.Path, p.StatusCode)
+		return fmt.Sprintf("%s - %s - %d\n", p.Method, p.Path, p.StatusCode)
 	})
 }

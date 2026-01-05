@@ -8,5 +8,5 @@ import (
 )
 
 func InitializeTestRoutes(router *gin.Engine, puzzleGRPCclient puzzlesv1.PuzzlesServiceClient) {
-	router.POST("/newPuzzle", middlewares.ExtractPuzzle(), handlers.CreatePuzzleRequest(puzzleGRPCclient))
+	router.POST("/new-puzzle", middlewares.ExtractPuzzle(), handlers.CreatePuzzleRequest(puzzleGRPCclient))
 }

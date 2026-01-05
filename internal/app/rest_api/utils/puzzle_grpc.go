@@ -19,7 +19,7 @@ func ConvertCreatePuzzleRequestModel(puzzle models.CreatePuzzleRequest) (*puzzle
 		err = errors.Join(err, errors.New("invalid puzzle level"))
 	}
 
-	if len(puzzle.Moves) <= 2 {//gotta create better validation in grpc server to not do too much computing on api server
+	if len(puzzle.Moves) <= 1 {//gotta create better validation in grpc server to not do too much computing on api server
 		err = errors.Join(err, errors.New("invalid moves"))
 	}
 
@@ -28,13 +28,9 @@ func ConvertCreatePuzzleRequestModel(puzzle models.CreatePuzzleRequest) (*puzzle
 		err = errors.Join(err, errors.New("invalid game state"))
 	}
 	for i := 0; i < len(puzzle.GameState); i++ {
-		if len(puzzle.GameState[i]) != 2 {
-			err = errors.Join(err, errors.New("invalid game state"))
-			break;
-		}
 		convertedGameState = append(convertedGameState, &puzzlesv1.CreatePuzzleRequest_PositionSchema{
-			Piece: puzzle.GameState[i][0],
-			Placement: puzzle.GameState[i][1],
+			Piece: puzzle.GameState[i].Piece,
+			Placement: puzzle.GameState[i].Placement,
 		})
 	}
 

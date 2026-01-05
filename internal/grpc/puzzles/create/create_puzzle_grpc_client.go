@@ -1,4 +1,4 @@
-package create_puzzle_client
+package client
 
 import (
 	"log"

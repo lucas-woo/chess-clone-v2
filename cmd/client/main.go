@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
@@ -30,6 +31,7 @@ func main() {
 	config.InitRedisClient(RedisClient)
 
 	httpServer := server.CreateServer()
+	fmt.Println(`listening on PORT: 3000`)
 	if err := httpServer.Run(":3000"); err != nil {
 		log.Fatalf("error running client %v",err)
 	}

@@ -14,7 +14,10 @@ import (
 var MongoClient *mongo.Client;
 
 func ConnectMongo() (err error) {
-	initContext, _ := context.WithTimeout(context.Background(), time.Second * 10);
+	
+	initContext, timoutFunc := context.WithTimeout(context.Background(), time.Second * 10);
+
+	defer timoutFunc();
 
 	uri := os.Getenv("MONGO_URI");
 	if uri == "" {

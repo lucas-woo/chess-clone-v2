@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/middlewares"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server/router"
-	puzzleclient "github.com/lucas-woo/chess-clone-v2/internal/grpc/puzzles/create"
+	puzzleclient "github.com/lucas-woo/chess-clone-v2/internal/grpc/servers/puzzles/create"
 );
 
 

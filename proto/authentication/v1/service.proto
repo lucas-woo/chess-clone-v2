@@ -13,7 +13,5 @@ service AuthenticationService {
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
 
   rpc LogoutUser(LogoutUserRequest) returns (LogoutUserResponse);
-
-  rpc VerifyUsername(VerifyUsernameRequest) returns (VerifyUsernameResponse);
   
 }

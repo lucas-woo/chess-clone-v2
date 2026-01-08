@@ -36,7 +36,12 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	}
 	sessionId := uuid.New()
 	createdID := result.InsertedID.(bson.ObjectID).String()
-	s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 1)
+
+	if signupRequest.RememberMe {
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)
+	} else {
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60)
+	}
 
 	return nil, nil
 }

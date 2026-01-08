@@ -8,6 +8,7 @@ message SignUpUserRequest {
   string username = 1;
   string hashed_password = 2;
   string email = 3;
+  bool remember_me = 4;
 }
 
 message SignUpUserResponse {
@@ -24,9 +25,9 @@ message SignUpUserResponse {
 }
 
 message LoginUserRequest {
-  string username = 1;
-  string hashed_password = 2;
-  string email = 3;  
+  string hashed_password = 1;
+  string email = 2;  
+  bool remember_me = 3;
 }
 
 message LoginUserResponse {

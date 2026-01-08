@@ -19,10 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthenticationService_SignUpUser_FullMethodName     = "/authentication.v1.AuthenticationService/SignUpUser"
-	AuthenticationService_LoginUser_FullMethodName      = "/authentication.v1.AuthenticationService/LoginUser"
-	AuthenticationService_LogoutUser_FullMethodName     = "/authentication.v1.AuthenticationService/LogoutUser"
-	AuthenticationService_VerifyUsername_FullMethodName = "/authentication.v1.AuthenticationService/VerifyUsername"
+	AuthenticationService_SignUpUser_FullMethodName = "/authentication.v1.AuthenticationService/SignUpUser"
+	AuthenticationService_LoginUser_FullMethodName  = "/authentication.v1.AuthenticationService/LoginUser"
+	AuthenticationService_LogoutUser_FullMethodName = "/authentication.v1.AuthenticationService/LogoutUser"
 )
 
 // AuthenticationServiceClient is the client API for AuthenticationService service.
@@ -32,7 +31,6 @@ type AuthenticationServiceClient interface {
 	SignUpUser(ctx context.Context, in *SignUpUserRequest, opts ...grpc.CallOption) (*SignUpUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
 	LogoutUser(ctx context.Context, in *LogoutUserRequest, opts ...grpc.CallOption) (*LogoutUserResponse, error)
-	VerifyUsername(ctx context.Context, in *VerifyUsernameRequest, opts ...grpc.CallOption) (*VerifyUsernameResponse, error)
 }
 
 type authenticationServiceClient struct {
@@ -73,16 +71,6 @@ func (c *authenticationServiceClient) LogoutUser(ctx context.Context, in *Logout
 	return out, nil
 }
 
-func (c *authenticationServiceClient) VerifyUsername(ctx context.Context, in *VerifyUsernameRequest, opts ...grpc.CallOption) (*VerifyUsernameResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(VerifyUsernameResponse)
-	err := c.cc.Invoke(ctx, AuthenticationService_VerifyUsername_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility.
@@ -90,7 +78,6 @@ type AuthenticationServiceServer interface {
 	SignUpUser(context.Context, *SignUpUserRequest) (*SignUpUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 	LogoutUser(context.Context, *LogoutUserRequest) (*LogoutUserResponse, error)
-	VerifyUsername(context.Context, *VerifyUsernameRequest) (*VerifyUsernameResponse, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -109,9 +96,6 @@ func (UnimplementedAuthenticationServiceServer) LoginUser(context.Context, *Logi
 }
 func (UnimplementedAuthenticationServiceServer) LogoutUser(context.Context, *LogoutUserRequest) (*LogoutUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LogoutUser not implemented")
-}
-func (UnimplementedAuthenticationServiceServer) VerifyUsername(context.Context, *VerifyUsernameRequest) (*VerifyUsernameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method VerifyUsername not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 func (UnimplementedAuthenticationServiceServer) testEmbeddedByValue()                               {}
@@ -188,24 +172,6 @@ func _AuthenticationService_LogoutUser_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthenticationService_VerifyUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VerifyUsernameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthenticationServiceServer).VerifyUsername(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthenticationService_VerifyUsername_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServiceServer).VerifyUsername(ctx, req.(*VerifyUsernameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -224,10 +190,6 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LogoutUser",
 			Handler:    _AuthenticationService_LogoutUser_Handler,
-		},
-		{
-			MethodName: "VerifyUsername",
-			Handler:    _AuthenticationService_VerifyUsername_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -47,10 +47,3 @@ message LogoutUserResponse {
   bool logged_out = 1;
 }
 
-message VerifyUsernameRequest {
-  string username = 1;
-}
-
-message VerifyUsernameResponse {
-  bool username_taken = 1;
-}

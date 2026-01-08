@@ -17,9 +17,9 @@ import (
 )
 
 type Server struct {
+	authv1.UnimplementedAuthenticationServiceServer; 
 	redisClient *redis.Client
 	userLoginCollection *mongo.Collection
-	authv1.UnimplementedAuthenticationServiceServer; 
 }
 
 func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUserRequest) (*authv1.SignUpUserResponse, error) {
@@ -34,6 +34,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+
 	sessionId := uuid.New()
 	createdID := result.InsertedID.(bson.ObjectID).String()
 
@@ -43,7 +44,10 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60)
 	}
 
-	return nil, nil
+	return &authv1.SignUpUserResponse{
+		SignupError: authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED,
+		SessionId: sessionId.String(),
+	}, nil
 }
 
 
@@ -51,9 +55,6 @@ func (s *Server) LoginUser(context.Context, *authv1.LoginUserRequest) (*authv1.L
 	return nil, nil
 }
 func (s *Server) LogoutUser(context.Context, *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
-	return nil, nil
-}
-func (s *Server) VerifyUsername(context.Context, *authv1.VerifyUsernameRequest) (*authv1.VerifyUsernameResponse, error) {
 	return nil, nil
 }
 

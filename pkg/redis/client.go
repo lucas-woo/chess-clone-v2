@@ -10,6 +10,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var (
+	SessionPrefix string = "session:"
+)
+
 func ConnectRedis() (*redis.Client, error) {
 	redisAddr := os.Getenv("REDIS_ADDR");
 	redisPassword := os.Getenv("REDIS_PASS");

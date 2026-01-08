@@ -12,7 +12,6 @@ var (
 )
 
 type UserLogin struct {
-	ID bson.ObjectID `bson:"_id,omitempty"`
 	Username string `bson:"username,omitempty"`
 	Email string `bson:"email,omitempty"`
 	Hash string `bson:"hash,omitempty"`

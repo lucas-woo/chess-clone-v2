@@ -5,6 +5,11 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	DatabaseName string = "user_database"
+	UserLoginCollection string = "user_login";
+	UserProfileCollection string = "user_profile"
+)
 
 type UserLogin struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`

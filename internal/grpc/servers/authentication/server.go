@@ -52,7 +52,12 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 
 
 func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
-
+	user, err := parseLoginUserRequest(loginRequest, s.userLoginCollection, ctx)
+	if err != nil {
+		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, status.Error(codes.Unauthenticated, err.Error())
+	}
+	//check if session already exists for this user
+	//add session to that user
 	return nil, nil
 }
 func (s *Server) LogoutUser(context.Context, *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
@@ -87,9 +92,30 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
-func parseLoginUserRequest(loginReq *authv1.LoginUserRequest) (*models.UserLogin, error) {
-	
-	return nil, nil
+func parseLoginUserRequest(loginRequest *authv1.LoginUserRequest, userLoginCollection *mongo.Collection, ctx context.Context) (*models.UserLogin, error) {
+	var err error;
+	if loginRequest.HashedPassword == "" {
+
+	}
+	if loginRequest.Email == "" {
+
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.D{
+		bson.E{Key: "email", Value: loginRequest.Email},
+	}
+	var user models.UserLogin
+	err = userLoginCollection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	if user.Hash != loginRequest.HashedPassword {
+		return nil, errors.New("invalid_credentials")
+	}
+	return &user, nil
 }
 
 

@@ -17,6 +17,7 @@ type UserLogin struct {
 	UserID uuid.UUID `bson:"uuid,omitempty"`
 }
 
+
 type UserProfile struct {
 	UserID uuid.UUID `bson:"uuid,omitempty"`
 	//highscore

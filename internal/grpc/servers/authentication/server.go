@@ -50,16 +50,28 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	}, nil
 }
 
-
 func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
-	user, err := parseLoginUserRequest(loginRequest, s.userLoginCollection, ctx)
+	user, invalidInfoError, err := parseLoginUserRequest(loginRequest, s.userLoginCollection, ctx)
 	if err != nil {
-		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, status.Error(codes.Unauthenticated, err.Error())
+		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	//check if session already exists for this user
-	//add session to that user
-	return nil, nil
+	if invalidInfoError != nil {
+		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, nil
+	}
+	sessionId := uuid.New()
+	createdID :=  user.ID.String()
+
+	if loginRequest.RememberMe {
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)
+	} else {
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60)
+	}
+	return &authv1.LoginUserResponse{
+		LoginError: authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED,
+		SessionId: sessionId.String(),
+	}, nil
 }
+
 func (s *Server) LogoutUser(context.Context, *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
 	return nil, nil
 }
@@ -92,30 +104,32 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
-func parseLoginUserRequest(loginRequest *authv1.LoginUserRequest, userLoginCollection *mongo.Collection, ctx context.Context) (*models.UserLogin, error) {
-	var err error;
+func parseLoginUserRequest(loginRequest *authv1.LoginUserRequest, userLoginCollection *mongo.Collection, ctx context.Context) (*models.UserLogin, error, error) {
+	//this needs validation
+	var invalidInfoError error;
 	if loginRequest.HashedPassword == "" {
-
+		invalidInfoError = errors.Join(invalidInfoError, errors.New(""))
 	}
 	if loginRequest.Email == "" {
-
+		invalidInfoError = errors.Join(invalidInfoError, errors.New(""))
 	}
-	if err != nil {
-		return nil, err
+
+	if invalidInfoError != nil {
+		return nil, invalidInfoError, nil
 	}
 
 	filter := bson.D{
 		bson.E{Key: "email", Value: loginRequest.Email},
 	}
 	var user models.UserLogin
-	err = userLoginCollection.FindOne(ctx, filter).Decode(&user)
+	err := userLoginCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return nil, err
+		return nil, invalidInfoError, err
 	}
 	if user.Hash != loginRequest.HashedPassword {
-		return nil, errors.New("invalid_credentials")
+		return nil, errors.New("invalid_credentials"), err
 	}
-	return &user, nil
+	return &user, nil, nil
 }
 
 

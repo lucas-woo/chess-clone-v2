@@ -49,7 +49,7 @@ func main() {
 
 	healthServer := health.NewServer()
 	healthv1.RegisterHealthServer(grpcServer, healthServer);
-	fmt.Println("puzzle server running")
+	fmt.Println("auth server running")
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("err in starting grpc server: %v",err)

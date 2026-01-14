@@ -29,4 +29,18 @@ func main() {
 		fmt.Println("error")
 	}
 	fmt.Println(res)
+
+
+
+	res1, err1 := client.LoginUser(ctx, &authv1.LoginUserRequest{
+		Email: "1234",
+		HashedPassword: "sdfhsdfksdhjkfshdf",
+	})
+	if err1 != nil {
+		log.Fatal("err")
+	}
+	if res1.LoginError != authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED {
+		log.Fatal("invalid res\n\n")
+	}
+	fmt.Println(res1)
 }

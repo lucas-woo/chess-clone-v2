@@ -51,7 +51,8 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 }
 
 
-func (s *Server) LoginUser(context.Context, *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
+func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
+
 	return nil, nil
 }
 func (s *Server) LogoutUser(context.Context, *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
@@ -86,6 +87,10 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
+func parseLoginUserRequest(loginReq *authv1.LoginUserRequest) (*models.UserLogin, error) {
+	
+	return nil, nil
+}
 
 
 func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection) (*Server) {

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +18,7 @@ type UserLogin struct {
 }
 
 type UserProfile struct {
-	ID bson.ObjectID `bson:"_id,omitempty"`
 	UserID uuid.UUID `bson:"uuid,omitempty"`
 	//highscore
+	//...profile pic
 }

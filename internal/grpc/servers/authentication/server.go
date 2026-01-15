@@ -3,10 +3,9 @@ package authenticationgrpc
 import (
 	"context"
 	"errors"
-	"time";
 	"strings"
+	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"github.com/google/uuid"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
@@ -14,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -138,8 +138,9 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 	if err != nil {
 		return nil, invalidInfoError, err
 	}
-	if user.Hash != loginRequest.HashedPassword {
-		return nil, errors.New("invalid_credentials"), err
+	err = bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(loginRequest.Password))
+	if err != nil {
+		return nil, errors.New("invalid_credentials"), nil
 	}
 	return &user, nil, nil
 }

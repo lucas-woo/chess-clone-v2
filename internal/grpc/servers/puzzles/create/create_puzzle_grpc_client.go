@@ -8,7 +8,7 @@ import (
 )
 
 
-func CreateGRPCClient() puzzlesv1.PuzzlesServiceClient {
+func CreateGRPCPuzzleClient() puzzlesv1.PuzzlesServiceClient {
 
 	conn, err := grpc.NewClient("localhost:50051" ,grpc.WithTransportCredentials(insecure.NewCredentials()));
 

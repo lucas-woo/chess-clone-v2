@@ -16,7 +16,7 @@ func CreateServer() *gin.Engine {
 
 	newServer.Use(middlewares.LoggerFunc(), gin.Recovery())
 
-	puzzleServer := puzzleclient.CreateGRPCClient()
+	puzzleServer := puzzleclient.CreateGRPCPuzzleClient()
 
 	router.InitializeRouter(newServer, puzzleServer)
 

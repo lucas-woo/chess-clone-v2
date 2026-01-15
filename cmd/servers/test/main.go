@@ -34,7 +34,7 @@ func main() {
 
 	res1, err1 := client.LoginUser(ctx, &authv1.LoginUserRequest{
 		Email: "1234",
-		HashedPassword: "sdfhsdfksdhjkfshdf",
+		Password: "sdfhsdfksdhjkfshdf",
 	})
 	if err1 != nil {
 		log.Fatal("err")

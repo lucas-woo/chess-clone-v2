@@ -3,7 +3,8 @@ package authenticationgrpc
 import (
 	"context"
 	"errors"
-	"time"
+	"time";
+	"strings"
 
 	"github.com/google/uuid"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
@@ -73,13 +74,17 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 }
 
 func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
-	
 	err := parseLogoutUserRequest(logoutRequest)
 	if err != nil {
-
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	s.redisClient.Del(ctx, []string{}...)
-	return nil, nil
+	_, err = s.redisClient.Del(ctx, logoutRequest.SessionId).Result()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &authv1.LogoutUserResponse{
+		LoggedOut: true,
+	}, nil
 }
 
 
@@ -139,11 +144,23 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 }
 
 func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (error) {
-	var errs error;
-	if logoutRequest.SessionId == "" {
-		errs = errors.Join(errs, errors.New("invalid_session_id"))
+	var err error;
+	if len(logoutRequest.SessionId) <= len(redisclient.SessionPrefix) {
+		err = errors.New("invalid_session_id")
+		return err
 	}
-	return nil
+	if !strings.Contains(logoutRequest.SessionId, redisclient.SessionPrefix) {
+		err = errors.New("invalid_session_id")
+		return err
+	}
+	var sessionID string;
+	var sb strings.Builder
+	var incommingSessionID = []rune(logoutRequest.SessionId)
+	for i := len(redisclient.SessionPrefix); i < len(incommingSessionID); i++ {
+		sb.WriteRune(incommingSessionID[i])
+	}
+	_, err = uuid.Parse(sessionID)
+	return err
 }
 
 

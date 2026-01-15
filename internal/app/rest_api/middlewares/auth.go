@@ -68,3 +68,10 @@ func ProtectedRoute() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+//needs to validate the signup request body, username, password, email...
+func ValidateSignUp() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Next()
+	}
+}

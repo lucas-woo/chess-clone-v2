@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
+	internalconfig "github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server"
+	"github.com/lucas-woo/chess-clone-v2/pkg/config"
+	redisclient "github.com/lucas-woo/chess-clone-v2/pkg/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -16,11 +18,11 @@ var (
 
 func main() {
 
-	if err := server.InitializeEnv(); err != nil {
+	if err := config.InitializeEnv(); err != nil {
 		log.Fatal(err.Error())
 	}
 	
-	rdb, err := server.ConnectRedis();
+	rdb, err := redisclient.ConnectRedis();
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -28,7 +30,7 @@ func main() {
 	RedisClient = rdb
 	defer RedisClient.Close()
 
-	config.InitRedisClient(RedisClient)
+	internalconfig.InitRedisClient(RedisClient)
 
 	httpServer := server.CreateServer()
 	fmt.Println(`listening on PORT: 3000`)

@@ -1,0 +1,17 @@
+syntax="proto3";
+
+option go_package = "github.com/lucas-woo/chess-clone-v2/api/authentication/v1/authv1";
+
+package authentication.v1;
+
+import "authentication/v1/auth.proto";
+
+service AuthenticationService {
+
+  rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
+
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+
+  rpc LogoutUser(LogoutUserRequest) returns (LogoutUserResponse);
+  
+}

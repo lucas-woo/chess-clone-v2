@@ -15,4 +15,5 @@ service PuzzlesService {
   rpc GetPuzzleById(GetPuzzleByIdRequest) returns (GetPuzzleByIdResponse);
 
   rpc DeletePuzzleById(DeletePuzzleByIdRequest) returns (DeletePuzzleByIdResponse);
+  
 }

@@ -5,20 +5,22 @@ import (
 
 	"github.com/gin-gonic/gin"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
 )
 
 func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
-	return func (ctx *gin.Context) {
+	return func (c *gin.Context) {
 		
-		newUser, err := authClient.SignUpUser(ctx.Request.Context(), &authv1.SignUpUserRequest{
+		newUser, err := authClient.SignUpUser(c.Request.Context(), &authv1.SignUpUserRequest{
 
 		})
-		if err != nil || newUser.SignupError != authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED{
-			ctx.AbortWithStatus(http.StatusBadRequest)
+		if err != nil || newUser.SignupError != authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED {
+			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 
-		
+		//set cookie
+		c.SetCookie(config.CookieSessionIDString, newUser.SessionId, 30, "", "", true, true)
 
 	}
 }

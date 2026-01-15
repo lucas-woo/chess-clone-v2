@@ -15,13 +15,27 @@ var (
 )
 
 func ConnectRedis() (*redis.Client, error) {
-	redisAddr := os.Getenv("REDIS_ADDR");
-	redisPassword := os.Getenv("REDIS_PASS");
-	redisDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	redisAddr, found := os.LookupEnv("REDIS_ADDR");
+	if !found {
+		return nil, errors.New("error loading env")
+	}
+	redisPassword, found := os.LookupEnv("REDIS_PASS");
+	if !found {
+		return nil, errors.New("error loading env")
+	}
+	redisDBString, found := os.LookupEnv("REDIS_DB")
+	if !found {
+		return nil, errors.New("error loading env")
+	}
+	redisDB, err := strconv.Atoi(redisDBString)
 	if err != nil {
 		return nil, err
 	}	
-	redisProtocol, err := strconv.Atoi(os.Getenv("REDIS_PROTOCOL"))
+	redisProtocolString, found := os.LookupEnv("REDIS_PROTOCOL")
+	if !found {
+		return nil, errors.New("error loading env")
+	}
+	redisProtocol, err := strconv.Atoi(redisProtocolString)
 	if err != nil {
 		return nil, err
 	}	

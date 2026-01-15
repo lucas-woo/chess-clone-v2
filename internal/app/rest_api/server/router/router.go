@@ -1,13 +1,12 @@
 package router
 
 import (
-
 	"github.com/gin-gonic/gin"
+	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
-	
 )
 
-func InitializeRouter(router *gin.Engine, grpcClient puzzlesv1.PuzzlesServiceClient) {
+func InitializeRouter(router *gin.Engine, authClient authv1.AuthenticationServiceClient, grpcClient puzzlesv1.PuzzlesServiceClient) {
 	InitializeTestRoutes(router, grpcClient)
 	InitializeAuthRoutes(router);
 }

@@ -19,8 +19,7 @@ func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 			return
 		}
 
-		//set cookie
-		c.SetCookie(config.CookieSessionIDString, newUser.SessionId, 30, "", "", true, true)
+		c.SetCookie(config.CookieSessionIDString, newUser.SessionId, config.CookieSessionMaxAge, config.CookieSessionPath, config.CookieSessionDomain, config.CookieSessionSecure, config.CookieSessionHttpOnly)
 
 	}
 }

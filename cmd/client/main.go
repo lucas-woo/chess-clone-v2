@@ -21,6 +21,8 @@ func main() {
 	if err := config.InitializeEnv(); err != nil {
 		log.Fatal(err.Error())
 	}
+
+	config.InitializeEnv()
 	
 	rdb, err := redisclient.ConnectRedis();
 	if err != nil {

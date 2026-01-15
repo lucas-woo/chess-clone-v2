@@ -11,60 +11,60 @@ import (
 )
 
 func IsAlreadyLoggedIn() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
 		var userSessionID models.UserSession;
 
-		sessionId, err := ctx.Cookie(config.CookieSessionIDString);
+		sessionId, err := c.Cookie(config.CookieSessionIDString);
 
 		if err != nil {
-			ctx.Next()
+			c.Next()
 			return 
 		}
 		err = json.Unmarshal([]byte(sessionId), &userSessionID)
 		if err != nil {
-			ctx.Next()
+			c.Next()
 			return 			
 		}
-		isValid, err := repositories.ValidateSessionID(ctx.Request.Context(), userSessionID.SessionID);
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), userSessionID.SessionID);
 		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 		if isValid {
-			ctx.AbortWithStatus(http.StatusContinue)
+			c.AbortWithStatus(http.StatusContinue)
 			return
 		}
-		ctx.Next()
+		c.Next()
 	}
 }
 
 func ProtectedRoute() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		
 		var userSessionID models.UserSession;
 
-		sessionId, err := ctx.Cookie(config.CookieSessionIDString);
+		sessionId, err := c.Cookie(config.CookieSessionIDString);
 
 		if err != nil {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
 		err = json.Unmarshal([]byte(sessionId), &userSessionID)
 		if err != nil {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
 
-		isValid, err := repositories.ValidateSessionID(ctx.Request.Context(), userSessionID.SessionID);
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), userSessionID.SessionID);
 		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 		if !isValid {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
-		ctx.Next()
+		c.Next()
 	}
 }

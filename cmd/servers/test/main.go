@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"golang.org/x/crypto/bcrypt"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,10 +20,13 @@ func main() {
 	client := authv1.NewAuthenticationServiceClient(conn)
 	
 	ctx := context.Background()
+
+	password, err := bcrypt.GenerateFromPassword([]byte("sdfhsdfksdhjkfshdf"), bcrypt.DefaultCost)
+
 	res, err := client.SignUpUser(ctx, &authv1.SignUpUserRequest{
 		Username: "lucas",
 		Email: "1234",
-		HashedPassword: "sdfhsdfksdhjkfshdf",
+		HashedPassword: string(password),
 		RememberMe: false,
 	})
 	if res.SignupError != authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED {

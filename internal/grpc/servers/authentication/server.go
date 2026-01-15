@@ -6,6 +6,7 @@ import (
 	"time";
 	"strings"
 
+	"golang.org/x/crypto/bcrypt"
 	"github.com/google/uuid"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
@@ -118,7 +119,7 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, error, error) {
 	//this needs validation
 	var invalidInfoError error;
-	if loginRequest.HashedPassword == "" {
+	if loginRequest.Password == "" {
 		invalidInfoError = errors.Join(invalidInfoError, errors.New(""))
 	}
 	if loginRequest.Email == "" {

@@ -51,7 +51,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 }
 
 func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
-	user, invalidInfoError, err := parseLoginUserRequest(loginRequest, s.userLoginCollection, ctx)
+	user, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, loginRequest)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
@@ -73,10 +73,12 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 }
 
 func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
-	err := parseLogoutUserRequest(logoutRequest, ctx)
+	
+	err := parseLogoutUserRequest(logoutRequest)
 	if err != nil {
-		
+
 	}
+	s.redisClient.Del(ctx, []string{}...)
 	return nil, nil
 }
 
@@ -108,7 +110,7 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
-func parseLoginUserRequest(loginRequest *authv1.LoginUserRequest, userLoginCollection *mongo.Collection, ctx context.Context) (*models.UserLogin, error, error) {
+func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, error, error) {
 	//this needs validation
 	var invalidInfoError error;
 	if loginRequest.HashedPassword == "" {
@@ -136,9 +138,14 @@ func parseLoginUserRequest(loginRequest *authv1.LoginUserRequest, userLoginColle
 	return &user, nil, nil
 }
 
-func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest, ctx context.Context) (error) {
+func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (error) {
+	var errs error;
+	if logoutRequest.SessionId == "" {
+		errs = errors.Join(errs, errors.New("invalid_session_id"))
+	}
 	return nil
 }
+
 
 func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection) (*Server) {
 	return &Server{

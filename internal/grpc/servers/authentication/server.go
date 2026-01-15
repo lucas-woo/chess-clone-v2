@@ -74,11 +74,11 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 }
 
 func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
-	err := parseLogoutUserRequest(logoutRequest)
+	sessionID, err := parseLogoutUserRequest(logoutRequest)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	_, err = s.redisClient.Del(ctx, logoutRequest.SessionId).Result()
+	_, err = s.redisClient.Del(ctx, sessionID).Result()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -143,24 +143,20 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 	return &user, nil, nil
 }
 
-func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (error) {
+func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, error) {
 	var err error;
-	if len(logoutRequest.SessionId) <= len(redisclient.SessionPrefix) {
+	if len(logoutRequest.SessionId) < 1 {
 		err = errors.New("invalid_session_id")
-		return err
+		return "", err
 	}
-	if !strings.Contains(logoutRequest.SessionId, redisclient.SessionPrefix) {
-		err = errors.New("invalid_session_id")
-		return err
+	_, err = uuid.Parse(logoutRequest.SessionId)
+	if err != nil {
+		return "", err
 	}
-	var sessionID string;
-	var sb strings.Builder
-	var incommingSessionID = []rune(logoutRequest.SessionId)
-	for i := len(redisclient.SessionPrefix); i < len(incommingSessionID); i++ {
-		sb.WriteRune(incommingSessionID[i])
-	}
-	_, err = uuid.Parse(sessionID)
-	return err
+	var sb strings.Builder;
+	sb.WriteString(redisclient.SessionPrefix)
+	sb.WriteString(logoutRequest.SessionId)
+	return sb.String(), err
 }
 
 

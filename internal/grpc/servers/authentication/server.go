@@ -72,7 +72,11 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 	}, nil
 }
 
-func (s *Server) LogoutUser(context.Context, *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
+func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUserRequest) (*authv1.LogoutUserResponse, error) {
+	err := parseLogoutUserRequest(logoutRequest, ctx)
+	if err != nil {
+		
+	}
 	return nil, nil
 }
 
@@ -132,6 +136,9 @@ func parseLoginUserRequest(loginRequest *authv1.LoginUserRequest, userLoginColle
 	return &user, nil, nil
 }
 
+func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest, ctx context.Context) (error) {
+	return nil
+}
 
 func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection) (*Server) {
 	return &Server{

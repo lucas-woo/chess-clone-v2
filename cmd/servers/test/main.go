@@ -42,5 +42,13 @@ func main() {
 	if res1.LoginError != authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED {
 		log.Fatal("invalid res\n\n")
 	}
+
 	fmt.Println(res1)
+	res2, err2 := client.LogoutUser(ctx, &authv1.LogoutUserRequest{
+		SessionId: res1.SessionId,
+	})
+	if err2 != nil {
+		log.Fatal("err logout\n\n")
+	}
+	fmt.Println(res2)	
 }

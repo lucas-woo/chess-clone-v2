@@ -85,4 +85,13 @@ func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 
 		c.JSON(http.StatusCreated, "ok")
 	}
+
+}
+
+func logout(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		
+
+	}
 }

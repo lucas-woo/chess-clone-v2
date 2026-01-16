@@ -7,7 +7,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health";
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1";
-	puzzlestore "github.com/lucas-woo/chess-clone-v2/internal/puzzlestore";
 	puzzlegrpcserver "github.com/lucas-woo/chess-clone-v2/internal/grpc/servers/puzzles";
 	healthv1 "google.golang.org/grpc/health/grpc_health_v1"
 
@@ -22,7 +21,7 @@ func main () {
 
 	grpcServer := grpc.NewServer();
 
-	puzzlesv1.RegisterPuzzlesServiceServer(grpcServer, puzzlegrpcserver.NewServer(puzzlestore.NewStore()))
+	puzzlesv1.RegisterPuzzlesServiceServer(grpcServer, puzzlegrpcserver.NewServer())
 	healthServer := health.NewServer()
 	healthv1.RegisterHealthServer(grpcServer, healthServer);
 	fmt.Println("puzzle server running")

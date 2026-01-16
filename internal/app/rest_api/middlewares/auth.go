@@ -87,6 +87,14 @@ func ValidateSignUp() gin.HandlerFunc {
 
 func ValidateLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var loginRequestBody models.UserLoginData
+
+		if c.ShouldBindBodyWithJSON(&loginRequestBody) != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		
+		c.Set(config.UserLoginData, loginRequestBody)
 		c.Next()
 	}
 }

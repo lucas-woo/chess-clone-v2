@@ -1,7 +1,9 @@
 package models
 
-type UserLogin struct {
-
+type UserLoginData struct {
+	Email string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	RememberMe bool `json:"rememberMe" binding:"required"`
 }
 
 type UserSignUpData struct {

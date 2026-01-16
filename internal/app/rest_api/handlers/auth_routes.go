@@ -51,7 +51,6 @@ func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 
 func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		data, exists := c.Get(config.UserLoginData)
 
 		if !exists {
@@ -77,7 +76,9 @@ func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 			return						
 		}
 
-		c.JSON(http.StatusCreated, "ok")
+		c.SetCookie(config.CookieSessionIDString, loggedIn.SessionId, config.CookieSessionMaxAge, config.CookieSessionPath, config.CookieSessionDomain, config.CookieSessionSecure, config.CookieSessionHttpOnly)
+
+		c.JSON(http.StatusOK, "ok")
 	}
 
 }

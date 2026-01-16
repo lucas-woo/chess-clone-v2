@@ -14,7 +14,7 @@ func IsAlreadyLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var userSessionID models.UserSession;
-
+		//should use config instead? or it should use the cookie name from config at least
 		sessionId, err := c.Cookie(config.CookieSessionIDString);
 
 		if err != nil {
@@ -71,7 +71,13 @@ func ProtectedRoute() gin.HandlerFunc {
 
 //needs to validate the signup request body, username, password, email...
 func ValidateSignUp() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Next()
+	return func(c *gin.Context) {
+		c.Next()
+	}
+}
+
+func ValidateLogin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
 	}
 }

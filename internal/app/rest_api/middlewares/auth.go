@@ -65,6 +65,9 @@ func ProtectedRoute() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
+
+		c.Set(config.CookieSessionIDString, userSessionID.SessionID)
+
 		c.Next()
 	}
 }

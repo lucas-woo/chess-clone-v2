@@ -57,7 +57,32 @@ func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 }
 
 func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
+
+		email, exists := c.Get("email")
+		emailConv, ok := email.(string)
+		if !exists || !ok{
+			c.AbortWithStatus(http.StatusBadRequest)
+			return			
+		}				
+
+		password, exists := c.Get("password")
+		passwordConv, ok := password.(string)
+		if !exists || !ok{
+			c.AbortWithStatus(http.StatusBadRequest)
+			return			
+		}		
+
+		loggedIn, err := authClient.LoginUser(c.Request.Context(), &authv1.LoginUserRequest{
+			Email: emailConv,
+			Password: passwordConv,
+		})
 		
+		if err != nil || loggedIn.LoginError != authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return						
+		}
+
+		c.JSON(http.StatusCreated, "ok")
 	}
 }

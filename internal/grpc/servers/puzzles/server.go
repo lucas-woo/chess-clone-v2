@@ -13,6 +13,7 @@ import (
 
 type Server struct {
 	puzzlesv1.UnimplementedPuzzlesServiceServer
+	// puzzleCollection
 	store PuzzleStorage
 }
 

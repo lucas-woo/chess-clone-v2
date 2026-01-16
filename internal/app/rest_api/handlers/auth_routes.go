@@ -51,6 +51,7 @@ func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 
 func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		data, exists := c.Get(config.UserLoginData)
 
 		if !exists {
@@ -85,7 +86,7 @@ func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 
 func Logout(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		
 		sessionID, exists := c.Get(config.CookieSessionIDString)
 		if !exists {
 			c.AbortWithStatus(http.StatusBadRequest)

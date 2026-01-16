@@ -12,21 +12,14 @@ import (
 
 func IsAlreadyLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		var userSessionID models.UserSession;
-		//should use config instead? or it should use the cookie name from config at least
 		sessionId, err := c.Cookie(config.CookieSessionIDString);
-
+		
 		if err != nil {
 			c.Next()
 			return 
 		}
-		err = json.Unmarshal([]byte(sessionId), &userSessionID)
-		if err != nil {
-			c.Next()
-			return 			
-		}
-		isValid, err := repositories.ValidateSessionID(c.Request.Context(), userSessionID.SessionID);
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
+		
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return

@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,7 @@ func IsAlreadyLoggedIn() gin.HandlerFunc {
 			return 
 		}
 		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
-		
+
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -35,31 +34,26 @@ func IsAlreadyLoggedIn() gin.HandlerFunc {
 func ProtectedRoute() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		
-		var userSessionID models.UserSession;
-
 		sessionId, err := c.Cookie(config.CookieSessionIDString);
 
 		if err != nil {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
-		err = json.Unmarshal([]byte(sessionId), &userSessionID)
-		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return 
-		}
 
-		isValid, err := repositories.ValidateSessionID(c.Request.Context(), userSessionID.SessionID);
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
+
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+
 		if !isValid {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
 
-		c.Set(config.CookieSessionIDString, userSessionID.SessionID)
+		c.Set(config.CookieSessionIDString, sessionId)
 
 		c.Next()
 	}

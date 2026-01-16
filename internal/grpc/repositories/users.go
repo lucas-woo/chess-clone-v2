@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func GetUserLoginCollection() (*mongo.Collection) {
+func GetUserAuthCollection() (*mongo.Collection) {
 	return mongodb.MongoClient.Database(models.UserDatabaseName).Collection(models.UserLoginCollection)
 }
 

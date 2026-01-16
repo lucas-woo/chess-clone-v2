@@ -12,7 +12,6 @@ import (
 
 func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func (c *gin.Context) {
-
 		data, exists := c.Get(config.UserSignUpData)
 		
 		if !exists {

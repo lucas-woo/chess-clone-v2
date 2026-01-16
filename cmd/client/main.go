@@ -21,6 +21,8 @@ func main() {
 	if err := config.InitializeEnv(); err != nil {
 		log.Fatal(err.Error())
 	}
+	
+	internalconfig.InitCookiesEnv()
 
 	config.InitializeEnv()
 	

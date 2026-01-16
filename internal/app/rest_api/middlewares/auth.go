@@ -75,6 +75,12 @@ func ProtectedRoute() gin.HandlerFunc {
 //needs to validate the signup request body, username, password, email...
 func ValidateSignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var signUpReq models.UserSignUp
+		if c.ShouldBindBodyWithJSON(&signUpReq) != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		c.Set("user_signup", signUpReq)
 		c.Next()
 	}
 }

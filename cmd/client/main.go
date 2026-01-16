@@ -22,6 +22,10 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	
+	internalconfig.InitCookiesEnv()
+
+	config.InitializeEnv()
+	
 	rdb, err := redisclient.ConnectRedis();
 	if err != nil {
 		log.Fatal(err.Error())

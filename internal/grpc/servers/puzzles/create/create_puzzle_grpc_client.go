@@ -2,15 +2,22 @@ package client
 
 import (
 	"log"
+	"os"
+
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 
-func CreateGRPCClient() puzzlesv1.PuzzlesServiceClient {
+func CreateGRPCPuzzleClient() puzzlesv1.PuzzlesServiceClient {
 
-	conn, err := grpc.NewClient("localhost:50051" ,grpc.WithTransportCredentials(insecure.NewCredentials()));
+	port, found := os.LookupEnv("PUZZLE_CLIENT_PORT")
+	if !found {
+		log.Fatal("error with puzzle port env");
+	}
+
+	conn, err := grpc.NewClient("localhost:" + port, grpc.WithTransportCredentials(insecure.NewCredentials()));
 
 	if err != nil {
 		log.Fatalf("error creating grpc client %v", err);

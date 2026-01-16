@@ -7,10 +7,10 @@ import (
 )
 
 func GetUserLoginCollection() (*mongo.Collection) {
-	return mongodb.MongoClient.Database(models.DatabaseName).Collection(models.UserLoginCollection)
+	return mongodb.MongoClient.Database(models.UserDatabaseName).Collection(models.UserLoginCollection)
 }
 
 //needs indexing to uuid
 func GetUserProfileCollection() (*mongo.Collection) {
-	return mongodb.MongoClient.Database(models.DatabaseName).Collection(models.UserProfileCollection)
+	return mongodb.MongoClient.Database(models.UserDatabaseName).Collection(models.UserProfileCollection)
 }

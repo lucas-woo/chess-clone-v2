@@ -76,7 +76,7 @@ func ProtectedRoute() gin.HandlerFunc {
 func ValidateSignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var signUpReq models.UserSignUpData
-		if c.ShouldBindBodyWithJSON(&signUpReq) != nil {
+		if err := c.ShouldBindBodyWithJSON(&signUpReq); err != nil {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}

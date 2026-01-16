@@ -55,3 +55,9 @@ func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 		c.JSON(http.StatusCreated, "created")
 	}
 }
+
+func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		
+	}
+}

@@ -6,42 +6,37 @@ import (
 	"github.com/gin-gonic/gin"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func (c *gin.Context) {
-		username, exists := c.Get("username")
-		usernameConv, ok := username.(string)
-		if !exists || !ok {
+
+		data, exists := c.Get(config.UserSignUpData)
+		
+		if !exists {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return			
 		}
+		signUpUserData, ok := data.(models.UserSignUpData)
 
-		password, exists := c.Get("password")
-		passwordConv, ok := password.(string)
-		if !exists || !ok{
+		if !ok {
 			c.AbortWithStatus(http.StatusBadRequest)
-			return			
-		}		
+			return						
+		}
 
-		email, exists := c.Get("email")
-		emailConv, ok := email.(string)
-		if !exists || !ok{
-			c.AbortWithStatus(http.StatusBadRequest)
-			return			
-		}		
-
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordConv), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signUpUserData.Password), bcrypt.DefaultCost)
 		if err != nil {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return				
 		}
 
 		newUser, err := authClient.SignUpUser(c.Request.Context(), &authv1.SignUpUserRequest{
-			Username: usernameConv,
-			Email: emailConv,
+			Username: signUpUserData.Username,
 			HashedPassword: string(hashedPassword),
+			Email: signUpUserData.Email,
+			RememberMe: signUpUserData.RememberMe,
 		})
 
 		if err != nil || newUser.SignupError != authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED {

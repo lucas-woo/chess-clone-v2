@@ -11,7 +11,6 @@ import (
 
 func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func (c *gin.Context) {
-
 		username, exists := c.Get("username")
 		usernameConv, ok := username.(string)
 		if !exists || !ok {

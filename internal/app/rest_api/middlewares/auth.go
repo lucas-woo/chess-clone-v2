@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,60 +10,78 @@ import (
 )
 
 func IsAlreadyLoggedIn() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-
-		var userSessionID models.UserSession;
-
-		sessionId, err := ctx.Cookie(config.CookieSessionIDString);
-
+	return func(c *gin.Context) {
+		sessionId, err := c.Cookie(config.CookieSessionIDString);
+		
 		if err != nil {
-			ctx.Next()
+			c.Next()
 			return 
 		}
-		err = json.Unmarshal([]byte(sessionId), &userSessionID)
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
+
 		if err != nil {
-			ctx.Next()
-			return 			
-		}
-		isValid, err := repositories.ValidateSessionID(ctx.Request.Context(), userSessionID.SessionID);
-		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 		if isValid {
-			ctx.AbortWithStatus(http.StatusContinue)
+			c.AbortWithStatus(http.StatusContinue)
 			return
 		}
-		ctx.Next()
+		c.Next()
 	}
 }
 
 func ProtectedRoute() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		
-		var userSessionID models.UserSession;
-
-		sessionId, err := ctx.Cookie(config.CookieSessionIDString);
+		sessionId, err := c.Cookie(config.CookieSessionIDString);
 
 		if err != nil {
-			ctx.AbortWithStatus(http.StatusBadRequest)
-			return 
-		}
-		err = json.Unmarshal([]byte(sessionId), &userSessionID)
-		if err != nil {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
 
-		isValid, err := repositories.ValidateSessionID(ctx.Request.Context(), userSessionID.SessionID);
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
+
 		if err != nil {
-			ctx.AbortWithError(http.StatusInternalServerError, err)
+			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
+
 		if !isValid {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
-		ctx.Next()
+
+		c.Set(config.CookieSessionIDString, sessionId)
+
+		c.Next()
+	}
+}
+
+//needs to validate the signup request body, username, password, email...
+func ValidateSignUp() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var signUpReq models.UserSignUpData
+		if err := c.ShouldBindBodyWithJSON(&signUpReq); err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		c.Set(config.UserSignUpData, signUpReq)
+		c.Next()
+	}
+}
+
+func ValidateLogin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var loginRequestBody models.UserLoginData
+
+		if c.ShouldBindBodyWithJSON(&loginRequestBody) != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		
+		c.Set(config.UserLoginData, loginRequestBody)
+		c.Next()
 	}
 }

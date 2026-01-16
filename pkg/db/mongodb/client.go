@@ -19,8 +19,8 @@ func ConnectMongo() (err error) {
 
 	defer timoutFunc();
 
-	uri := os.Getenv("MONGO_URI");
-	if uri == "" {
+	uri, found := os.LookupEnv("MONGO_URI");
+	if !found {
 		err = errors.New("enable to connect to mongo")
 		return 
 	}

@@ -10,22 +10,22 @@ import (
 
 
 func ExtractPuzzle() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		var puzzle models.CreatePuzzleRequest;
 		
-		err := ctx.ShouldBindBodyWithJSON(&puzzle);
+		err := c.ShouldBindBodyWithJSON(&puzzle);
 
 		if err != nil {
-			ctx.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
 		convertedPuzzle, err := utils.ConvertCreatePuzzleRequestModel(puzzle)
 
 		if err != nil {
-			ctx.AbortWithError(http.StatusBadRequest, err)
+			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
-		ctx.Set(models.CreatedPuzzleKey, convertedPuzzle)
-		ctx.Next()
+		c.Set(models.CreatedPuzzleKey, convertedPuzzle)
+		c.Next()
 	}
 }

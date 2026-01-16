@@ -1,9 +1,113 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
-func SignUp() gin.HandlerFunc {
-	return func (ctx *gin.Context) {
-		//signup user to db and create session 
+	"github.com/gin-gonic/gin"
+	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/models"
+	"golang.org/x/crypto/bcrypt"
+)
+
+func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		data, exists := c.Get(config.UserSignUpData)
+		
+		if !exists {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return			
+		}
+		signUpUserData, ok := data.(models.UserSignUpData)
+
+		if !ok {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return						
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signUpUserData.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return				
+		}
+
+		newUser, err := authClient.SignUpUser(c.Request.Context(), &authv1.SignUpUserRequest{
+			Username: signUpUserData.Username,
+			HashedPassword: string(hashedPassword),
+			Email: signUpUserData.Email,
+			RememberMe: signUpUserData.RememberMe,
+		})
+
+		if err != nil || newUser.SignupError != authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		c.SetCookie(config.CookieSessionIDString, newUser.SessionId, config.CookieSessionMaxAge, config.CookieSessionPath, config.CookieSessionDomain, config.CookieSessionSecure, config.CookieSessionHttpOnly)
+
+		c.JSON(http.StatusCreated, "created")
+	}
+}
+
+func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		data, exists := c.Get(config.UserLoginData)
+
+		if !exists {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return					
+		}
+
+		loginUserData, ok := data.(models.UserLoginData)
+
+		if !ok {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return					
+		}
+
+		loggedIn, err := authClient.LoginUser(c.Request.Context(), &authv1.LoginUserRequest{
+			Email: loginUserData.Email,
+			Password: loginUserData.Password,
+			RememberMe: loginUserData.RememberMe,
+		})
+		
+		if err != nil || loggedIn.LoginError != authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return						
+		}
+
+		c.SetCookie(config.CookieSessionIDString, loggedIn.SessionId, config.CookieSessionMaxAge, config.CookieSessionPath, config.CookieSessionDomain, config.CookieSessionSecure, config.CookieSessionHttpOnly)
+
+		c.JSON(http.StatusOK, "ok")
+	}
+
+}
+
+func Logout(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		
+		sessionID, exists := c.Get(config.CookieSessionIDString)
+		if !exists {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return					
+		}
+
+		sessID, ok := sessionID.(string)
+		if !ok {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return					
+		}
+
+		res, err := authClient.LogoutUser(c.Request.Context(), &authv1.LogoutUserRequest{
+			SessionId: sessID,
+		})
+
+		if err != nil || !res.LoggedOut {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		c.JSON(http.StatusOK, "logged out")
 	}
 }

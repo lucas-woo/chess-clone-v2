@@ -88,10 +88,30 @@ func Login(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 
 }
 
-func logout(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
+func Logout(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		
+		sessionID, exists := c.Get(config.CookieSessionIDString)
+		if !exists {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return					
+		}
 
+		sessID, ok := sessionID.(string)
+		if !ok {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return					
+		}
+
+		res, err := authClient.LogoutUser(c.Request.Context(), &authv1.LogoutUserRequest{
+			SessionId: sessID,
+		})
+
+		if err != nil || !res.LoggedOut {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		c.JSON(http.StatusOK, "logged out")
 	}
 }

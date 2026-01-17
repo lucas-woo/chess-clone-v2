@@ -2,6 +2,10 @@ package models
 
 import "go.mongodb.org/mongo-driver/v2/bson"
 
+var (
+	PuzzleDatabaseName string = "puzzle_database"
+	PuzzleCollectionName string = "puzzles";
+)
 
 type PuzzleSchema struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`

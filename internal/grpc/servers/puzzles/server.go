@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
+	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,7 +23,13 @@ func (s *Server) GetPuzzle(ctx context.Context, req *puzzlesv1.GetPuzzleRequest)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	s.puzzleCollection.Find(ctx, )
+
+	pipeline := mongo.Pipeline{
+		bson.D{bson.E{Key: "$match",Value:  bson.E{Key: "level", Value: level}}}, 
+		bson.D{bson.E{Key: "$sample", Value: bson.E{Key: "size", Value: models.PuzzleArrayLength}}},
+	}
+
+	s.puzzleCollection.Aggregate(ctx, pipeline)
 
 	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzle not implemented")
 }

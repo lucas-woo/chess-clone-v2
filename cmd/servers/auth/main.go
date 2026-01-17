@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	"github.com/lucas-woo/chess-clone-v2/internal/grpc/repositories"
@@ -36,7 +37,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lis, err := net.Listen("tcp", ":50051")
+	port, found := os.LookupEnv("AUTH_CLIENT_PORT")
+
+	if !found {
+		log.Fatal("error with auth port env");
+	}	
+
+	lis, err := net.Listen("tcp", ":" + port)
 
 	if err != nil {
 		log.Fatalf("err %v", err);

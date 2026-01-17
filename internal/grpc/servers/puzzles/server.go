@@ -3,6 +3,7 @@ package puzzlegrpc
 import (
 	"context"
 
+
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,6 +24,10 @@ func (s *Server) GetPuzzleById(context.Context, *puzzlesv1.GetPuzzleByIdRequest)
 }
 func (s *Server) DeletePuzzleById(context.Context, *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePuzzleById not implemented")
+}
+
+func parseGetPuzzleRequest (rq *puzzlesv1.GetPuzzleRequest) (int32, error) {
+	return 0, nil
 }
 
 func NewServer () *Server {

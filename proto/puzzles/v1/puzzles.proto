@@ -5,7 +5,7 @@ option go_package = "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1/puzzlesv
 package puzzles.v1;
 
 message GetPuzzleRequest {
-  string level = 1;
+  int32 level = 1;
 }
 
 message GetPuzzleResponse {

@@ -57,8 +57,16 @@ func (s *Server) CreatePuzzle(ctx context.Context, createReq *puzzlesv1.CreatePu
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	s.puzzleCollection.InsertOne(ctx, newPuzzle)
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePuzzle not implemented")
+	result, err := s.puzzleCollection.InsertOne(ctx, newPuzzle)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	id, ok := result.InsertedID.(bson.ObjectID)
+	if !ok {
+		return nil, status.Error(codes.Internal, "")
+	}
+	puzzleID := id.String()
+	return &puzzlesv1.CreatePuzzleResponse{Id: puzzleID}, nil
 }
 
 func (s *Server) GetPuzzleById(context.Context, *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
@@ -106,7 +114,7 @@ func parseCreatePuzzleRequest(req *puzzlesv1.CreatePuzzleRequest) (newPuzzle mod
 			errs = errors.New("invalid req")
 		}
 	}()
-	
+
 	//there needs to be a validate puzzle function 
 	//validatePuzzle(req) (error)
 

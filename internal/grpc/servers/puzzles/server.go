@@ -52,17 +52,24 @@ func (s *Server) GetPuzzle(ctx context.Context, req *puzzlesv1.GetPuzzleRequest)
 	return res, nil
 }
 
-func (s *Server) CreatePuzzle(context.Context, *puzzlesv1.CreatePuzzleRequest) (*puzzlesv1.CreatePuzzleResponse, error) {
+func (s *Server) CreatePuzzle(ctx context.Context, createReq *puzzlesv1.CreatePuzzleRequest) (*puzzlesv1.CreatePuzzleResponse, error) {
+	newPuzzle, err := parseCreatePuzzleRequest(createReq)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	s.puzzleCollection.InsertOne(ctx, newPuzzle)
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePuzzle not implemented")
 }
+
 func (s *Server) GetPuzzleById(context.Context, *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzleById not implemented")
 }
+
 func (s *Server) DeletePuzzleById(context.Context, *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePuzzleById not implemented")
 }
 
-func parseGetPuzzleRequest (getRequest *puzzlesv1.GetPuzzleRequest) (int32, error) {
+func parseGetPuzzleRequest(getRequest *puzzlesv1.GetPuzzleRequest) (int32, error) {
 	if getRequest.Level < 1 {
 		return 0, errors.New("invalid request");
 	}
@@ -90,6 +97,34 @@ func convertToGetPuzzleResponse(puzzles []models.PuzzleSchema) (*puzzlesv1.GetPu
 	}
 	return &puzzlesv1.GetPuzzleResponse{Puzzles: res}, nil
 }
+
+func parseCreatePuzzleRequest(req *puzzlesv1.CreatePuzzleRequest) (newPuzzle models.PuzzleSchema, errs error) {
+
+	defer func() {
+		r := recover()
+		if r != nil {
+			errs = errors.New("invalid req")
+		}
+	}()
+	
+	//there needs to be a validate puzzle function 
+	//validatePuzzle(req) (error)
+
+	var gameState []models.PuzzlePositionSchema = make([]models.PuzzlePositionSchema, 0)
+	for _, v := range req.GameState {
+		gameState = append(gameState, models.PuzzlePositionSchema{
+			Piece: v.Piece,
+			Placement: v.Placement,
+		})
+	}
+	return models.PuzzleSchema{
+		PlayerSide: req.PlayerSide,
+		Moves: req.Moves,
+		Level: req.Level,
+		GameState: gameState,
+	}, nil
+}
+
 
 func NewServer (puzzleCollection *mongo.Collection) *Server {
 	return &Server{

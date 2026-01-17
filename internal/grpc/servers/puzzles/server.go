@@ -47,7 +47,7 @@ func (s *Server) GetPuzzle(ctx context.Context, req *puzzlesv1.GetPuzzleRequest)
 	res, err  := convertToGetPuzzleResponse(puzzles);
 
 	if err != nil {
-
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return res, nil
 }
@@ -70,8 +70,25 @@ func parseGetPuzzleRequest (getRequest *puzzlesv1.GetPuzzleRequest) (int32, erro
 }
 
 func convertToGetPuzzleResponse(puzzles []models.PuzzleSchema) (*puzzlesv1.GetPuzzleResponse, error) {
-
-	return nil, nil
+	var res []*puzzlesv1.GetPuzzleResponse_Puzzle = make([]*puzzlesv1.GetPuzzleResponse_Puzzle, 0)
+	for _, v := range puzzles {
+		var gameState []*puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema = make([]*puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema, 0)
+		for _, t := range v.GameState {
+			gameState = append(gameState, &puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema{
+				Piece: t.Piece,
+				Placement: t.Placement,
+			})
+		}
+		var puz *puzzlesv1.GetPuzzleResponse_Puzzle = &puzzlesv1.GetPuzzleResponse_Puzzle{
+			Id: v.ID.String(),
+			PlayerSide: v.PlayerSide,
+			Level: v.Level,
+			GameState: gameState,
+			Moves: v.Moves,
+		}
+		res = append(res, puz)
+	}
+	return &puzzlesv1.GetPuzzleResponse{Puzzles: res}, nil
 }
 
 func NewServer (puzzleCollection *mongo.Collection) *Server {

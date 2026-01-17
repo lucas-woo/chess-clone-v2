@@ -29,10 +29,29 @@ func (s *Server) GetPuzzle(ctx context.Context, req *puzzlesv1.GetPuzzleRequest)
 		bson.D{bson.E{Key: "$sample", Value: bson.E{Key: "size", Value: models.PuzzleArrayLength}}},
 	}
 
-	s.puzzleCollection.Aggregate(ctx, pipeline)
+	cursor, err := s.puzzleCollection.Aggregate(ctx, pipeline)
 
-	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzle not implemented")
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	defer cursor.Close(ctx)
+
+	var puzzles []models.PuzzleSchema
+
+	err = cursor.All(ctx, &puzzles)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	res, err  := convertToGetPuzzleResponse(puzzles);
+
+	if err != nil {
+
+	}
+	return res, nil
 }
+
 func (s *Server) CreatePuzzle(context.Context, *puzzlesv1.CreatePuzzleRequest) (*puzzlesv1.CreatePuzzleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePuzzle not implemented")
 }
@@ -48,6 +67,11 @@ func parseGetPuzzleRequest (getRequest *puzzlesv1.GetPuzzleRequest) (int32, erro
 		return 0, errors.New("invalid request");
 	}
 	return getRequest.Level, nil
+}
+
+func convertToGetPuzzleResponse(puzzles []models.PuzzleSchema) (*puzzlesv1.GetPuzzleResponse, error) {
+
+	return nil, nil
 }
 
 func NewServer (puzzleCollection *mongo.Collection) *Server {

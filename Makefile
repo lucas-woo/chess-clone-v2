@@ -17,5 +17,8 @@ run-client: cmd/client/main.go
 	clear;
 	GIN_MODE=release go run cmd/client/main.go;
 
-run-test: cmd/servers/test/main.go
-	go run cmd/servers/test/main.go;
+run-auth-test: cmd/servers/test/auth/main.go
+	go run cmd/servers/test/auth/main.go;
+
+run-puzzle-test: cmd/servers/test/puzzles/main.go
+	go run cmd/servers/test/puzzles/main.go;

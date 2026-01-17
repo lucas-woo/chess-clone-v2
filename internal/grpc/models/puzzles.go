@@ -5,6 +5,8 @@ import "go.mongodb.org/mongo-driver/v2/bson"
 var (
 	PuzzleDatabaseName string = "puzzle_database"
 	PuzzleCollectionName string = "puzzles";
+
+	PuzzleArrayLength int = 5;
 )
 
 type PuzzleSchema struct {

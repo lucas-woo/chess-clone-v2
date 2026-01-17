@@ -38,8 +38,12 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	}
 
 	sessionId := uuid.New()
-	createdID := result.InsertedID.(bson.ObjectID).String()
-
+	id, ok := result.InsertedID.(bson.ObjectID)
+	if !ok {
+		return nil, status.Error(codes.Internal, "")
+	}
+	createdID := id.String()
+	
 	if signupRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)
 	} else {

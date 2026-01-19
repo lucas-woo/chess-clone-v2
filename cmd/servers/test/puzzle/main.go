@@ -17,11 +17,25 @@ func main() {
 	}
 	puzzleClient := client.CreateGRPCPuzzleClient()
 	ctx := context.Background()
-	res, err := puzzleClient.GetPuzzle(ctx, &puzzlesv1.GetPuzzleRequest{
-		Level: 2,
+	res, err := puzzleClient.CreatePuzzle(ctx, &puzzlesv1.CreatePuzzleRequest{
+		GameState: []*puzzlesv1.CreatePuzzleRequest_PositionSchema{
+			{Piece: "wp", Placement: "e4"},
+			{Piece: "bp", Placement: "d3"},
+		},
+		PlayerSide: "white",
+		Moves: []string{"e4 e5","g1 f3"},
+		Level: 3,
 	})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	fmt.Println(res)
+
+	req1, err := puzzleClient.GetPuzzle(ctx, &puzzlesv1.GetPuzzleRequest{
+		Level: 3,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(req1.Puzzles)
 }

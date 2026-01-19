@@ -69,8 +69,21 @@ func (s *Server) CreatePuzzle(ctx context.Context, createReq *puzzlesv1.CreatePu
 	return &puzzlesv1.CreatePuzzleResponse{Id: puzzleID}, nil
 }
 
-func (s *Server) GetPuzzleById(context.Context, *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPuzzleById not implemented")
+func (s *Server) GetPuzzleById(ctx context.Context, byIDRequest *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
+	puzzleID, err := parseGetPuzzleByIdRequest(byIDRequest)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	var foundPuzzle models.PuzzleSchema
+	filter := bson.M{"_id": puzzleID}
+	err = s.puzzleCollection.FindOne(ctx, filter).Decode(&foundPuzzle)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return nil, nil
 }
 
 func (s *Server) DeletePuzzleById(context.Context, *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
@@ -133,6 +146,13 @@ func parseCreatePuzzleRequest(req *puzzlesv1.CreatePuzzleRequest) (newPuzzle mod
 	}, nil
 }
 
+func parseGetPuzzleByIdRequest(byIDRequest *puzzlesv1.GetPuzzleByIdRequest) (bson.ObjectID, error) {
+
+	puzzleID, err := bson.ObjectIDFromHex(byIDRequest.Id)
+
+	return puzzleID, err
+
+}
 
 func NewServer (puzzleCollection *mongo.Collection) *Server {
 	return &Server{

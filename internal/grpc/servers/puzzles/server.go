@@ -83,7 +83,9 @@ func (s *Server) GetPuzzleById(ctx context.Context, byIDRequest *puzzlesv1.GetPu
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	return nil, nil
+	res := converGetPuzzleById(foundPuzzle)
+
+	return res, nil
 }
 
 func (s *Server) DeletePuzzleById(context.Context, *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
@@ -152,6 +154,25 @@ func parseGetPuzzleByIdRequest(byIDRequest *puzzlesv1.GetPuzzleByIdRequest) (bso
 
 	return puzzleID, err
 
+}
+
+func converGetPuzzleById(puzzle models.PuzzleSchema) *puzzlesv1.GetPuzzleByIdResponse{
+	var gameState []*puzzlesv1.GetPuzzleByIdResponse_PositionSchema = make([]*puzzlesv1.GetPuzzleByIdResponse_PositionSchema, 0)
+
+	for _, v := range puzzle.GameState {
+		gameState = append(gameState, &puzzlesv1.GetPuzzleByIdResponse_PositionSchema{
+			Piece: v.Piece,
+			Placement: v.Placement,
+		})
+	}
+
+	return &puzzlesv1.GetPuzzleByIdResponse{
+		GameState: gameState,
+		PlayerSide: puzzle.PlayerSide,
+		Level: puzzle.Level,
+		Id: puzzle.ID.String(),
+		Moves: puzzle.Moves,
+	}
 }
 
 func NewServer (puzzleCollection *mongo.Collection) *Server {

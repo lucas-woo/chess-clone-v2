@@ -88,8 +88,22 @@ func (s *Server) GetPuzzleById(ctx context.Context, byIDRequest *puzzlesv1.GetPu
 	return res, nil
 }
 
-func (s *Server) DeletePuzzleById(context.Context, *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePuzzleById not implemented")
+func (s *Server) DeletePuzzleById(ctx context.Context, deleteReq *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
+
+	puzzleID, err := parseDeletePuzzleByIdRequest(deleteReq)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	filter := bson.M{"_id": puzzleID}	
+
+	_, err = s.puzzleCollection.DeleteOne(ctx, filter)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return convertDeletePuzzleByIdResponse(), nil;
 }
 
 func parseGetPuzzleRequest(getRequest *puzzlesv1.GetPuzzleRequest) (int32, error) {
@@ -172,6 +186,19 @@ func converGetPuzzleById(puzzle models.PuzzleSchema) *puzzlesv1.GetPuzzleByIdRes
 		Level: puzzle.Level,
 		Id: puzzle.ID.String(),
 		Moves: puzzle.Moves,
+	}
+}
+
+func parseDeletePuzzleByIdRequest(deleteReq *puzzlesv1.DeletePuzzleByIdRequest) (bson.ObjectID, error) {
+
+	puzzleID, err := bson.ObjectIDFromHex(deleteReq.Id)
+
+	return puzzleID, err
+}
+
+func convertDeletePuzzleByIdResponse() (*puzzlesv1.DeletePuzzleByIdResponse) {
+	return &puzzlesv1.DeletePuzzleByIdResponse{
+		Deleted: true,
 	}
 }
 

@@ -25,8 +25,8 @@ func (s *Server) GetPuzzle(ctx context.Context, req *puzzlesv1.GetPuzzleRequest)
 	}
 
 	pipeline := mongo.Pipeline{
-		bson.D{bson.E{Key: "$match",Value:  bson.E{Key: "level", Value: level}}}, 
-		bson.D{bson.E{Key: "$sample", Value: bson.E{Key: "size", Value: models.PuzzleArrayLength}}},
+		bson.D{bson.E{Key: "$match",Value: bson.D{bson.E{Key: "level", Value: level},}}}, 
+		bson.D{bson.E{Key: "$sample", Value: bson.D{bson.E{Key: "size", Value: models.PuzzleArrayLength}}}},
 	}
 
 	cursor, err := s.puzzleCollection.Aggregate(ctx, pipeline)

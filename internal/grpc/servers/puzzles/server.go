@@ -65,7 +65,7 @@ func (s *Server) CreatePuzzle(ctx context.Context, createReq *puzzlesv1.CreatePu
 	if !ok {
 		return nil, status.Error(codes.Internal, "")
 	}
-	puzzleID := id.String()
+	puzzleID := id.Hex()
 	return &puzzlesv1.CreatePuzzleResponse{Id: puzzleID}, nil
 }
 
@@ -124,7 +124,7 @@ func convertToGetPuzzleResponse(puzzles []models.PuzzleSchema) (*puzzlesv1.GetPu
 			})
 		}
 		var puz *puzzlesv1.GetPuzzleResponse_Puzzle = &puzzlesv1.GetPuzzleResponse_Puzzle{
-			Id: v.ID.String(),
+			Id: v.ID.Hex(),
 			PlayerSide: v.PlayerSide,
 			Level: v.Level,
 			GameState: gameState,
@@ -184,7 +184,7 @@ func converGetPuzzleById(puzzle models.PuzzleSchema) *puzzlesv1.GetPuzzleByIdRes
 		GameState: gameState,
 		PlayerSide: puzzle.PlayerSide,
 		Level: puzzle.Level,
-		Id: puzzle.ID.String(),
+		Id: puzzle.ID.Hex(),
 		Moves: puzzle.Moves,
 	}
 }

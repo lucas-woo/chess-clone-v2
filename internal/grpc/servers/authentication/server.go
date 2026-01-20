@@ -42,7 +42,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	if !ok {
 		return nil, status.Error(codes.Internal, "")
 	}
-	createdID := id.String()
+	createdID := id.Hex()
 	
 	if signupRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)
@@ -65,7 +65,7 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, nil
 	}
 	sessionId := uuid.New()
-	createdID :=  user.ID.String()
+	createdID :=  user.ID.Hex()
 
 	if loginRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)

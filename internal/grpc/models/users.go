@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	DatabaseName string = "user_database"
+	UserDatabaseName string = "user_database"
 	UserLoginCollection string = "user_login";
 	UserProfileCollection string = "user_profile"
 )

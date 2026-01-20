@@ -1,198 +1,209 @@
 package puzzlegrpc
 
 import (
+	"context"
+	"errors"
+
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
-	"github.com/lucas-woo/chess-clone-v2/internal/puzzlestore";
-	"github.com/google/uuid";
-	"context";
+	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"errors";
-	"strconv"
 )
 
 type Server struct {
 	puzzlesv1.UnimplementedPuzzlesServiceServer
-	store PuzzleStorage
+	puzzleCollection *mongo.Collection
 }
 
-type PuzzleStorage interface {
-	CreateNewPuzzle (newPuzzle *puzzlestore.Puzzle) uuid.UUID
-	GetPuzzleByID (id uuid.UUID) *puzzlestore.Puzzle
-	DeletePuzzleByID (id uuid.UUID)
-	GetPuzzles (level int32) []*puzzlestore.Puzzle
-}
+func (s *Server) GetPuzzle(ctx context.Context, req *puzzlesv1.GetPuzzleRequest) (*puzzlesv1.GetPuzzleResponse, error) {
 
-
-func (s *Server) GetPuzzle(_ context.Context,rq *puzzlesv1.GetPuzzleRequest) (*puzzlesv1.GetPuzzleResponse, error) {
-
-	v, err := parseGetPuzzleRequest(rq);
+	level, err := parseGetPuzzleRequest(req)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	puzzleArr := s.store.GetPuzzles(v);
+	pipeline := mongo.Pipeline{
+		bson.D{bson.E{Key: "$match",Value: bson.D{bson.E{Key: "level", Value: level},}}}, 
+		bson.D{bson.E{Key: "$sample", Value: bson.D{bson.E{Key: "size", Value: models.PuzzleArrayLength}}}},
+	}
 
-	return convertPuzzleArrToGetPuzzleResponse(puzzleArr), nil
-}
-
-func (s *Server) CreatePuzzle(_ context.Context, rq *puzzlesv1.CreatePuzzleRequest) (*puzzlesv1.CreatePuzzleResponse, error) {
-
-	v, err := parseCreatePuzzleRequest(rq);
+	cursor, err := s.puzzleCollection.Aggregate(ctx, pipeline)
 
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error());
+		return nil, status.Error(codes.Internal, err.Error())
 	}
+	defer cursor.Close(ctx)
 
-	createdUUID := s.store.CreateNewPuzzle(v);
+	var puzzles []models.PuzzleSchema
 
-	return convertCreatePuzzleResponse(createdUUID), nil
-
-}
-
-func (s *Server) GetPuzzleById(_ context.Context, rq *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
-	id, err := parseGetPuzzleByIdRequest(rq);
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error());
-	}
-
-	puzzle := s.store.GetPuzzleByID(id)
-
-	return convertGetPuzzleByIdResponse(puzzle), nil
-}
-
-func (s *Server) DeletePuzzleById(_ context.Context, rq *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
-	id, err := parseDeletePuzzleByIdRequest(rq);
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error());
-	}
-	s.store.DeletePuzzleByID(id);
-	return &puzzlesv1.DeletePuzzleByIdResponse{
-		Deleted: true,
-	}, nil
-}
-
-func parseGetPuzzleRequest (rq *puzzlesv1.GetPuzzleRequest) (int32, error) {
-
-	var errs error
-	val64, err := strconv.Atoi(rq.Level)
+	err = cursor.All(ctx, &puzzles)
 
 	if err != nil {
-		errs = errors.Join(errs, errors.New("Couldn't parse GetPuzzleRequest"));
-		errs = errors.Join(errs, err);
-		return 0, errs
-	}
-	if val64 < 1 {
-		errors.Join(err, errors.New("Puzzel level should be greater than 0 GetPuzzleRequest"))
-		return 0, errs		
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return int32(val64), errs
+	res, err  := convertToGetPuzzleResponse(puzzles);
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return res, nil
 }
 
-func convertPuzzleArrToGetPuzzleResponse(puzzleArr []*puzzlestore.Puzzle) *puzzlesv1.GetPuzzleResponse {
-	var returnArray []*puzzlesv1.GetPuzzleResponse_Puzzle = make([]*puzzlesv1.GetPuzzleResponse_Puzzle, 0);
+func (s *Server) CreatePuzzle(ctx context.Context, createReq *puzzlesv1.CreatePuzzleRequest) (*puzzlesv1.CreatePuzzleResponse, error) {
+	newPuzzle, err := parseCreatePuzzleRequest(createReq)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	result, err := s.puzzleCollection.InsertOne(ctx, newPuzzle)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	id, ok := result.InsertedID.(bson.ObjectID)
+	if !ok {
+		return nil, status.Error(codes.Internal, "")
+	}
+	puzzleID := id.Hex()
+	return &puzzlesv1.CreatePuzzleResponse{Id: puzzleID}, nil
+}
 
-	for _, v := range puzzleArr {
+func (s *Server) GetPuzzleById(ctx context.Context, byIDRequest *puzzlesv1.GetPuzzleByIdRequest) (*puzzlesv1.GetPuzzleByIdResponse, error) {
+	puzzleID, err := parseGetPuzzleByIdRequest(byIDRequest)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
-		var gameStateArr []*puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema = make([]*puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema, 0);
+	var foundPuzzle models.PuzzleSchema
+	filter := bson.M{"_id": puzzleID}
+	err = s.puzzleCollection.FindOne(ctx, filter).Decode(&foundPuzzle)
 
-		for _, gs := range v.GameState {
-			gameStateArr = append(gameStateArr, &puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema{
-				Piece: gs.Piece,
-				Placement: gs.Placement,
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	res := converGetPuzzleById(foundPuzzle)
+
+	return res, nil
+}
+
+func (s *Server) DeletePuzzleById(ctx context.Context, deleteReq *puzzlesv1.DeletePuzzleByIdRequest) (*puzzlesv1.DeletePuzzleByIdResponse, error) {
+
+	puzzleID, err := parseDeletePuzzleByIdRequest(deleteReq)
+
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	filter := bson.M{"_id": puzzleID}	
+
+	_, err = s.puzzleCollection.DeleteOne(ctx, filter)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return convertDeletePuzzleByIdResponse(), nil;
+}
+
+func parseGetPuzzleRequest(getRequest *puzzlesv1.GetPuzzleRequest) (int32, error) {
+	if getRequest.Level < 1 {
+		return 0, errors.New("invalid request");
+	}
+	return getRequest.Level, nil
+}
+
+func convertToGetPuzzleResponse(puzzles []models.PuzzleSchema) (*puzzlesv1.GetPuzzleResponse, error) {
+	var res []*puzzlesv1.GetPuzzleResponse_Puzzle = make([]*puzzlesv1.GetPuzzleResponse_Puzzle, 0)
+	for _, v := range puzzles {
+		var gameState []*puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema = make([]*puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema, 0)
+		for _, t := range v.GameState {
+			gameState = append(gameState, &puzzlesv1.GetPuzzleResponse_Puzzle_PositionSchema{
+				Piece: t.Piece,
+				Placement: t.Placement,
 			})
 		}
-
-		returnArray = append(returnArray, &puzzlesv1.GetPuzzleResponse_Puzzle{
-			Id: v.ID.String(),
-			GameState: gameStateArr,
+		var puz *puzzlesv1.GetPuzzleResponse_Puzzle = &puzzlesv1.GetPuzzleResponse_Puzzle{
+			Id: v.ID.Hex(),
 			PlayerSide: v.PlayerSide,
-			Moves: v.Moves,
 			Level: v.Level,
-		})
+			GameState: gameState,
+			Moves: v.Moves,
+		}
+		res = append(res, puz)
 	}
-
-	return &puzzlesv1.GetPuzzleResponse{
-		Puzzles: returnArray,
-	}
+	return &puzzlesv1.GetPuzzleResponse{Puzzles: res}, nil
 }
 
-func parseCreatePuzzleRequest (rq *puzzlesv1.CreatePuzzleRequest) (*puzzlestore.Puzzle, error) {
-	var errs error
+func parseCreatePuzzleRequest(req *puzzlesv1.CreatePuzzleRequest) (newPuzzle models.PuzzleSchema, errs error) {
 
-	if rq.Level <= 0 { 
-		errs = errors.Join(errs, errors.New("Level should be more than 0"))		
-	}
-	if len(rq.Moves) == 0 {
-		errs = errors.Join(errs, errors.New("Moves should not be empty"))
-	}
-	if rq.PlayerSide != "black" && rq.PlayerSide != "white" {
-		errs = errors.Join(errs, errors.New(`Player Side should either be "black" or "white"`))
-	}
-	if len(rq.GameState) == 0 {
-		errs = errors.Join(errs, errors.New("GameState should not be empty"))
-	}
-	if errs != nil {
-		return nil, errs
-	}
+	defer func() {
+		r := recover()
+		if r != nil {
+			errs = errors.New("invalid req")
+		}
+	}()
 
-	var gameStateArr []*puzzlestore.Position = make([]*puzzlestore.Position, 0);
-	for _, v := range rq.GameState {
-		gameStateArr = append(gameStateArr, &puzzlestore.Position{
+	//there needs to be a validate puzzle function 
+	//validatePuzzle(req) (error)
+
+	var gameState []models.PuzzlePositionSchema = make([]models.PuzzlePositionSchema, 0)
+	for _, v := range req.GameState {
+		gameState = append(gameState, models.PuzzlePositionSchema{
 			Piece: v.Piece,
 			Placement: v.Placement,
 		})
 	}
-
-	return &puzzlestore.Puzzle{
-		GameState: gameStateArr,
-		PlayerSide: rq.PlayerSide,
-		Level: rq.Level,
-		Moves: rq.Moves,
+	return models.PuzzleSchema{
+		PlayerSide: req.PlayerSide,
+		Moves: req.Moves,
+		Level: req.Level,
+		GameState: gameState,
 	}, nil
 }
 
-func convertCreatePuzzleResponse (newUUID uuid.UUID) *puzzlesv1.CreatePuzzleResponse {
-	return &puzzlesv1.CreatePuzzleResponse{
-		Id: newUUID.String(),
-	}
+func parseGetPuzzleByIdRequest(byIDRequest *puzzlesv1.GetPuzzleByIdRequest) (bson.ObjectID, error) {
+
+	puzzleID, err := bson.ObjectIDFromHex(byIDRequest.Id)
+
+	return puzzleID, err
+
 }
 
-func parseGetPuzzleByIdRequest (rq *puzzlesv1.GetPuzzleByIdRequest) (uuid.UUID, error) {
-	parsed, err := uuid.Parse(rq.Id);
-	if err != nil {
-		return uuid.New(), err
-	}
-	return parsed, nil
-}
+func converGetPuzzleById(puzzle models.PuzzleSchema) *puzzlesv1.GetPuzzleByIdResponse{
+	var gameState []*puzzlesv1.GetPuzzleByIdResponse_PositionSchema = make([]*puzzlesv1.GetPuzzleByIdResponse_PositionSchema, 0)
 
-func convertGetPuzzleByIdResponse (puzzle *puzzlestore.Puzzle) *puzzlesv1.GetPuzzleByIdResponse {
-	var gameStateArr []*puzzlesv1.GetPuzzleByIdResponse_PositionSchema = make([]*puzzlesv1.GetPuzzleByIdResponse_PositionSchema, 0);
 	for _, v := range puzzle.GameState {
-		gameStateArr = append(gameStateArr, &puzzlesv1.GetPuzzleByIdResponse_PositionSchema{
+		gameState = append(gameState, &puzzlesv1.GetPuzzleByIdResponse_PositionSchema{
 			Piece: v.Piece,
 			Placement: v.Placement,
 		})
 	}
+
 	return &puzzlesv1.GetPuzzleByIdResponse{
+		GameState: gameState,
 		PlayerSide: puzzle.PlayerSide,
-		GameState: gameStateArr,
 		Level: puzzle.Level,
+		Id: puzzle.ID.Hex(),
 		Moves: puzzle.Moves,
 	}
 }
 
-func parseDeletePuzzleByIdRequest(rq *puzzlesv1.DeletePuzzleByIdRequest) (uuid.UUID, error) {
-	parsed, err := uuid.Parse(rq.Id);
-	if err != nil {
-		return uuid.New(), err
-	}
-	return parsed, nil
+func parseDeletePuzzleByIdRequest(deleteReq *puzzlesv1.DeletePuzzleByIdRequest) (bson.ObjectID, error) {
+
+	puzzleID, err := bson.ObjectIDFromHex(deleteReq.Id)
+
+	return puzzleID, err
 }
 
-func NewServer (newStore *puzzlestore.Store) *Server {
+func convertDeletePuzzleByIdResponse() (*puzzlesv1.DeletePuzzleByIdResponse) {
+	return &puzzlesv1.DeletePuzzleByIdResponse{
+		Deleted: true,
+	}
+}
+
+func NewServer (puzzleCollection *mongo.Collection) *Server {
 	return &Server{
-		store: newStore,
+		puzzleCollection: puzzleCollection,
 	};
 }

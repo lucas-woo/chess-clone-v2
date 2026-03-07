@@ -6,7 +6,8 @@ import (
 	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
 )
 
-func InitializeRouter(router *gin.Engine, authClient authv1.AuthenticationServiceClient, grpcClient puzzlesv1.PuzzlesServiceClient) {
-	InitializeTestRoutes(router, grpcClient)
+func InitializeRouter(router *gin.Engine, authClient authv1.AuthenticationServiceClient, puzzleClient puzzlesv1.PuzzlesServiceClient) {
+	InitializeTestRoutes(router, puzzleClient)
 	InitializeAuthRoutes(router, authClient);
+	InitializePuzzleRoutes(router, puzzleClient)
 }

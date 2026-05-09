@@ -167,10 +167,6 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 		err = errors.New("invalid_session_id")
 		return "", err
 	}
-	_, err = uuid.Parse(logoutRequest.SessionId)
-	if err != nil {
-		return "", err
-	}
 	var sb strings.Builder;
 	sb.WriteString(redisclient.SessionPrefix)
 	sb.WriteString(logoutRequest.SessionId)

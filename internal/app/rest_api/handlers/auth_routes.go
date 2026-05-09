@@ -7,7 +7,6 @@ import (
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
@@ -25,15 +24,9 @@ func SignUp(authClient authv1.AuthenticationServiceClient) gin.HandlerFunc {
 			return						
 		}
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signUpUserData.Password), bcrypt.DefaultCost)
-		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return				
-		}
-
 		newUser, err := authClient.SignUpUser(c.Request.Context(), &authv1.SignUpUserRequest{
 			Username: signUpUserData.Username,
-			HashedPassword: string(hashedPassword),
+			Password: signUpUserData.Password,
 			Email: signUpUserData.Email,
 			RememberMe: signUpUserData.RememberMe,
 		})

@@ -6,7 +6,7 @@ package authentication.v1;
 
 message SignUpUserRequest {
   string username = 1;
-  string hashed_password = 2;
+  string password = 2;
   string email = 3;
   bool remember_me = 4;
 }

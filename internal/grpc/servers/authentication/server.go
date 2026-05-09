@@ -104,17 +104,20 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 		newErr := errors.New("invalid username")
 		err = errors.Join(err, newErr)		
 	}
-	if len(signupRequest.HashedPassword) == 0 {
+	if len(signupRequest.Password) == 0 {
 		newErr := errors.New("invalid password")
 		err = errors.Join(err, newErr)
 	}
 	if err != nil {
 		return nil, err
 	}
+
+	password, err := bcrypt.GenerateFromPassword([]byte(signupRequest.Password), bcrypt.DefaultCost)
+
 	//gotta also double check if the username isn't taken, can't trust rest api
  	return &models.UserLogin{
 		Username: signupRequest.Username,
-		Hash: signupRequest.HashedPassword,
+		Hash: string(password),
 		Email: signupRequest.Email,
 		UserID: uuid.New(),
 	}, nil

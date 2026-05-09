@@ -16,11 +16,11 @@ type UserLogin struct {
 	Username string `bson:"username,omitempty"`
 	Email string `bson:"email,omitempty"`
 	Hash string `bson:"hash,omitempty"`
-	UserID uuid.UUID `bson:"uuid,omitempty"`
+	UserID uuid.UUID `bson:"uuid,omitempty"` //SAME
 }
 
 type UserProfile struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`
-	UserID uuid.UUID `bson:"uuid,omitempty"`
+	UserID uuid.UUID `bson:"uuid,omitempty"` // SAME
 	//highscore
 }

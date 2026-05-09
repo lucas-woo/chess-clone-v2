@@ -37,7 +37,11 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	sessionId := uuid.New()
+	sessionId, err := generateSessionId()
+	if err != nil {
+		return nil, status.Error(codes.Internal, "")
+	}
+
 	id, ok := result.InsertedID.(bson.ObjectID)
 	if !ok {
 		return nil, status.Error(codes.Internal, "")
@@ -45,14 +49,14 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	createdID := id.Hex()
 	
 	if signupRequest.RememberMe {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60 * 24)
 	} else {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60)
 	}
 
 	return &authv1.SignUpUserResponse{
 		SignupError: authv1.SignUpUserResponse_SIGN_UP_ERROR_UNSPECIFIED,
-		SessionId: sessionId.String(),
+		SessionId: sessionId,
 	}, nil
 }
 
@@ -64,17 +68,22 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 	if invalidInfoError != nil {
 		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, nil
 	}
-	sessionId := uuid.New()
-	createdID :=  user.ID.Hex()
+	
+	sessionId, err := generateSessionId()
+	if err != nil {
+		return nil, status.Error(codes.Internal, "")
+	}
+
+	userID :=  user.ID.Hex()
 
 	if loginRequest.RememberMe {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60 * 24)
 	} else {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId.String(), createdID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60)
 	}
 	return &authv1.LoginUserResponse{
 		LoginError: authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED,
-		SessionId: sessionId.String(),
+		SessionId: sessionId,
 	}, nil
 }
 
@@ -104,17 +113,20 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 		newErr := errors.New("invalid username")
 		err = errors.Join(err, newErr)		
 	}
-	if len(signupRequest.HashedPassword) == 0 {
+	if len(signupRequest.Password) == 0 {
 		newErr := errors.New("invalid password")
 		err = errors.Join(err, newErr)
 	}
 	if err != nil {
 		return nil, err
 	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(signupRequest.Password), bcrypt.DefaultCost)
+
 	//gotta also double check if the username isn't taken, can't trust rest api
  	return &models.UserLogin{
 		Username: signupRequest.Username,
-		Hash: signupRequest.HashedPassword,
+		Hash: string(hash),
 		Email: signupRequest.Email,
 		UserID: uuid.New(),
 	}, nil
@@ -153,10 +165,6 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 	var err error;
 	if len(logoutRequest.SessionId) < 1 {
 		err = errors.New("invalid_session_id")
-		return "", err
-	}
-	_, err = uuid.Parse(logoutRequest.SessionId)
-	if err != nil {
 		return "", err
 	}
 	var sb strings.Builder;

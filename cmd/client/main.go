@@ -23,8 +23,6 @@ func main() {
 	}
 	
 	internalconfig.InitCookiesEnv()
-
-	config.InitializeEnv()
 	
 	rdb, err := redisclient.ConnectRedis();
 	if err != nil {

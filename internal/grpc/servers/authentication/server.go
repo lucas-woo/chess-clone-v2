@@ -22,6 +22,7 @@ type Server struct {
 	authv1.UnimplementedAuthenticationServiceServer; 
 	redisClient *redis.Client
 	userLoginCollection *mongo.Collection
+	userRoleCollection *mongo.Collection
 }
 
 func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUserRequest) (*authv1.SignUpUserResponse, error) {
@@ -31,8 +32,16 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	result, err := s.userLoginCollection.InsertOne(ctx, newUser);
 
+	result, err := s.userLoginCollection.InsertOne(ctx, newUser);
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	_, err = s.userRoleCollection.InsertOne(ctx, &models.UserRole{
+		UserID: newUser.UserID,
+		Role: redisclient.UserRole,
+	})
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -53,6 +62,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60 * 24)
 	} else {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60)
 	}
 
 	return &authv1.SignUpUserResponse{
@@ -79,6 +89,7 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 
 	if loginRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60 * 24)
+		
 	} else {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60)
 	}
@@ -175,9 +186,10 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 }
 
 
-func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection) (*Server) {
+func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection, roleCollection *mongo.Collection) (*Server) {
 	return &Server{
 		redisClient: redisClient,
 		userLoginCollection: userLoginCollection,
+		userRoleCollection: roleCollection,
 	}
 }

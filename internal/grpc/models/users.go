@@ -9,6 +9,7 @@ var (
 	UserDatabaseName string = "user_database"
 	UserLoginCollection string = "user_login";
 	UserProfileCollection string = "user_profile"
+	UserRoleCollection string = "user_role"
 )
 
 type UserLogin struct {

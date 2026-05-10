@@ -3,7 +3,6 @@ package authenticationgrpc
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -72,7 +71,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 }
 
 func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
-	user, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, loginRequest)
+	user, userRole, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, loginRequest)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
@@ -89,9 +88,10 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 
 	if loginRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60 * 24)
-		
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60 * 24)
 	} else {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60)
 	}
 	return &authv1.LoginUserResponse{
 		LoginError: authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED,
@@ -104,10 +104,14 @@ func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUse
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	_, err = s.redisClient.Del(ctx, sessionID).Result()
+	_, err = s.redisClient.Del(ctx, redisclient.SessionPrefix + sessionID).Result()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	_, err = s.redisClient.Del(ctx, redisclient.RolePrefix + sessionID).Result()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}	
 	return &authv1.LogoutUserResponse{
 		LoggedOut: true,
 	}, nil
@@ -144,7 +148,7 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
-func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, error, error) {
+func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, *models.UserRole, error, error) {
 	//this needs validation
 	var invalidInfoError error;
 	if loginRequest.Password == "" {
@@ -155,7 +159,7 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 	}
 
 	if invalidInfoError != nil {
-		return nil, invalidInfoError, nil
+		return nil,nil, invalidInfoError, nil
 	}
 
 	filter := bson.D{
@@ -164,13 +168,26 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 	var user models.UserLogin
 	err := userLoginCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return nil, invalidInfoError, err
+		return nil, nil,invalidInfoError, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(loginRequest.Password))
 	if err != nil {
-		return nil, errors.New("invalid_credentials"), nil
+		return nil, nil, errors.New("invalid_credentials"), nil
 	}
-	return &user, nil, nil
+
+	roleFilter := bson.D{
+		bson.E{
+			Key: "uuid",
+			Value: user.UserID,
+		},
+	}
+	var userRole models.UserRole
+	err = userLoginCollection.FindOne(ctx, roleFilter).Decode(&userRole)
+	if err != nil {
+		return nil, nil, invalidInfoError, err
+	}
+
+	return &user, &userRole, nil, nil
 }
 
 func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, error) {
@@ -179,10 +196,7 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 		err = errors.New("invalid_session_id")
 		return "", err
 	}
-	var sb strings.Builder;
-	sb.WriteString(redisclient.SessionPrefix)
-	sb.WriteString(logoutRequest.SessionId)
-	return sb.String(), err
+	return logoutRequest.SessionId, err
 }
 
 

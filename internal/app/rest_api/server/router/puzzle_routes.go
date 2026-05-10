@@ -8,11 +8,10 @@ import (
 )
 
 func initializePuzzleRoutes(router *gin.Engine, puzzleClient puzzlesv1.PuzzlesServiceClient) {
-
+	// use websockets later?
+	// 3 min timer needs to be in sync 
 	router.GET("/puzzles/", middlewares.ProtectedRoute(), handlers.CreatePuzzleRequest(puzzleClient))
 
-	router.GET("/puzzles/leaderboard/all")
-	router.GET("/puzzles/leaderboard/daily")
-	router.GET("/puzzles/rank")
+	router.POST("puzzles/save")
 
 }

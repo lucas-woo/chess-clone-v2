@@ -10,7 +10,7 @@ import (
 func initializeAdminRoutes (router *gin.Engine, puzzleClient puzzlesv1.PuzzlesServiceClient) {
 
 
-	router.POST("/admin/create-puzzle", middlewares.ProtectedAdminRoute(), handlers.CreatePuzzle(puzzleClient))
+	router.POST("/admin/create-puzzle", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute(), handlers.CreatePuzzle(puzzleClient))
 
 
 	

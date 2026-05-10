@@ -7,17 +7,18 @@ import (
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/config"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/models"
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/repositories"
+	redisclient "github.com/lucas-woo/chess-clone-v2/pkg/redis"
 )
 
 func IsAlreadyLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sessionId, err := c.Cookie(config.CookieSessionIDString);
+		sessionID, err := c.Cookie(config.CookieSessionIDString);
 		
 		if err != nil {
 			c.Next()
 			return 
 		}
-		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
+		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionID);
 
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
@@ -88,6 +89,25 @@ func ValidateLogin() gin.HandlerFunc {
 
 func ProtectedAdminRoute () gin.HandlerFunc {
 	return func(c *gin.Context) {
+
+		sessionID, err := c.Cookie(config.CookieSessionIDString);
+
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return 
+		}
 		
+		userRole, err := repositories.GetUserRole(c.Request.Context(), sessionID)
+	
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return 			
+		}
+
+		if userRole != redisclient.AdminRole {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
 	}
 }

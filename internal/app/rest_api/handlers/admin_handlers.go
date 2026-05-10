@@ -50,3 +50,29 @@ func CreatePuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
 		c.JSON(http.StatusCreated, res)
 	}
 }
+
+
+func DeletePuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var puzzleID models.DeletePuzzleRequest
+		if err := c.ShouldBindBodyWithJSON(&puzzleID); err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		res, err := puzzleClient.DeletePuzzleById(c.Request.Context(), &puzzlesv1.DeletePuzzleByIdRequest{
+			Id: puzzleID.Id,
+		})
+		if err != nil {
+			c.AbortWithStatus(http.StatusBadRequest)
+			return			
+		}
+
+		deletedResponse := models.DeletePuzzleResponse{
+			Deleted: res.Deleted,
+		}
+
+		c.JSON(http.StatusOK, deletedResponse)
+
+	}
+}

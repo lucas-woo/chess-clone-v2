@@ -26,6 +26,8 @@ func ValidateSessionID(ctx context.Context, sessionID string) (bool, error) {
 	return true, nil
 }
 
+
+
 func GetUserRole (ctx context.Context, sessionID string) (string, error) {
 	role, err := config.RedisClient.Get(ctx, redisclient.SessionPrefix + sessionID).Result()
 	if err == redis.Nil || err != nil {

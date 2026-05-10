@@ -15,3 +15,7 @@ type CreatePuzzleRequest struct {
 	GameState []CreatePuzzleRequestGameState `json:"gameState" binding:"required"`
 	Moves []string `json:"moves" binding:"required"`
 }
+
+type DeletePuzzleRequest struct {
+	Id string `json:"puzzle-id" binding:"required"`
+}

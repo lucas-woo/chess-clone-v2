@@ -43,5 +43,10 @@ func CreatePuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
 			return 			
 		}
 
+		res := models.CreatePuzzleResponse{
+			Id: puzzleResponse.Id,
+		}
+
+		c.JSON(http.StatusCreated, res)
 	}
 }

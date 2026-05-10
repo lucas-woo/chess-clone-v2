@@ -14,3 +14,7 @@ func GetUserAuthCollection() (*mongo.Collection) {
 func GetUserProfileCollection() (*mongo.Collection) {
 	return mongodb.MongoClient.Database(models.UserDatabaseName).Collection(models.UserProfileCollection)
 }
+
+func GetUserRoleCollection() (*mongo.Collection) {
+	return mongodb.MongoClient.Database(models.UserDatabaseName).Collection(models.UserRoleCollection)
+}

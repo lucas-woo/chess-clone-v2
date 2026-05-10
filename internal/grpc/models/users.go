@@ -19,6 +19,12 @@ type UserLogin struct {
 	UserID uuid.UUID `bson:"uuid,omitempty"` //SAME
 }
 
+type UserRole struct {
+	ID bson.ObjectID `bson:"_id,omitempty"`
+	UserID uuid.UUID `bson:"uuid,omitempty"` //SAME
+	Role string `bson:"role,omitempty"`
+}
+
 type UserProfile struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`
 	UserID uuid.UUID `bson:"uuid,omitempty"` // SAME

@@ -10,10 +10,10 @@ import (
 func initializeAdminRoutes (router *gin.Engine, puzzleClient puzzlesv1.PuzzlesServiceClient) {
 
 
-	router.POST("/admin/create-puzzle", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute(), handlers.CreatePuzzle(puzzleClient))
+	router.POST("/admin/create-puzzle", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute(), middlewares.ExtractPuzzle(), handlers.CreatePuzzle(puzzleClient))
 
 
 	
-	router.DELETE("/admin/delete-puzzle")
-	router.POST("/ban")
+	router.DELETE("/admin/delete-puzzle", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute())
+	router.POST("/ban", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute())
 }

@@ -108,6 +108,7 @@ func ProtectedAdminRoute () gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-
+		
+		c.Next()
 	}
 }

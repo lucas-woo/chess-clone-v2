@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/utils"
 	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
 	redisclient "github.com/lucas-woo/chess-clone-v2/pkg/redis"
 	"github.com/redis/go-redis/v9"
@@ -45,7 +46,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	sessionId, err := generateSessionId()
+	sessionId, err := utils.GenerateSessionId()
 	if err != nil {
 		return nil, status.Error(codes.Internal, "")
 	}
@@ -79,7 +80,7 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, nil
 	}
 	
-	sessionId, err := generateSessionId()
+	sessionId, err := utils.GenerateSessionId()
 	if err != nil {
 		return nil, status.Error(codes.Internal, "")
 	}

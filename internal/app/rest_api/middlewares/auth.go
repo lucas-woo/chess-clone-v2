@@ -85,3 +85,9 @@ func ValidateLogin() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func ProtectedAdminRoute () gin.HandlerFunc {
+	return func(c *gin.Context) {
+		
+	}
+}

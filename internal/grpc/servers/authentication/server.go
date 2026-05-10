@@ -50,6 +50,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	
 	if signupRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60 * 24)
 	} else {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60)
 	}

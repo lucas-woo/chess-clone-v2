@@ -8,9 +8,11 @@ import (
 )
 
 func initializePuzzleRoutes(router *gin.Engine, puzzleClient puzzlesv1.PuzzlesServiceClient) {
-	router.GET("/puzzles/get", middlewares.ProtectedRoute(), handlers.CreatePuzzleRequest(puzzleClient))
 
-	router.POST("/puzzles/create", )//admin
-	router.GET("/puzzles/get-by-id" )// admin
-	router.DELETE("/puzzles/delete")//admin
+	router.GET("/puzzles/", middlewares.ProtectedRoute(), handlers.CreatePuzzleRequest(puzzleClient))
+
+	router.GET("/puzzles/leaderboard/all")
+	router.GET("/puzzles/leaderboard/daily")
+	router.GET("/puzzles/rank")
+
 }

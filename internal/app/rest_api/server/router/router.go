@@ -10,4 +10,5 @@ func InitializeRouter(router *gin.Engine, authClient authv1.AuthenticationServic
 	initializeTestRoutes(router, puzzleClient)
 	initializeAuthRoutes(router, authClient);
 	initializePuzzleRoutes(router, puzzleClient)
+	initializeAdminRoutes(router, puzzleClient)
 }

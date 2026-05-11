@@ -15,5 +15,6 @@ func initializeAdminRoutes (router *gin.Engine, puzzleClient puzzlesv1.PuzzlesSe
 
 	
 	router.DELETE("/admin/delete-puzzle", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute(), handlers.DeletePuzzle(puzzleClient))
-	router.POST("/ban", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute())
+	//needs implementation in grpc server
+	// router.POST("/ban", middlewares.ProtectedRoute(), middlewares.ProtectedAdminRoute()) 
 }

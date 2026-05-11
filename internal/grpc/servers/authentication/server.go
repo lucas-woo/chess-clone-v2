@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"time"
+	// "fmt";
 
 	"github.com/google/uuid"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
@@ -72,7 +73,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 }
 
 func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
-	user, userRole, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, loginRequest)
+	user, userRole, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, s.userRoleCollection, loginRequest)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
@@ -149,7 +150,7 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
-func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, *models.UserRole, error, error) {
+func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, userRoleCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, *models.UserRole, error, error) {
 	//this needs validation
 	var invalidInfoError error;
 	if loginRequest.Password == "" {
@@ -183,7 +184,7 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 		},
 	}
 	var userRole models.UserRole
-	err = userLoginCollection.FindOne(ctx, roleFilter).Decode(&userRole)
+	err = userRoleCollection.FindOne(ctx, roleFilter).Decode(&userRole)
 	if err != nil {
 		return nil, nil, invalidInfoError, err
 	}

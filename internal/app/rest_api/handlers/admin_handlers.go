@@ -16,27 +16,13 @@ func CreatePuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
-		puzzle, ok := p.(models.CreatePuzzleRequest)
+		puzzle, ok := p.(*puzzlesv1.CreatePuzzleRequest)
 		if !ok {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return 
 		}
 
-		var convertedPuzzle []*puzzlesv1.CreatePuzzleRequest_PositionSchema;
-
-		for _, v := range puzzle.GameState {
-			convertedPuzzle = append(convertedPuzzle, &puzzlesv1.CreatePuzzleRequest_PositionSchema{
-				Piece: v.Piece,
-				Placement: v.Placement,
-			})
-		}
-
-		puzzleResponse, err := puzzleClient.CreatePuzzle(c.Request.Context(), &puzzlesv1.CreatePuzzleRequest{
-			GameState: convertedPuzzle,
-			PlayerSide: puzzle.PlayerSide,
-			Moves: puzzle.Moves,
-			Level: puzzle.Level,                               
-		})
+		puzzleResponse, err := puzzleClient.CreatePuzzle(c.Request.Context(), puzzle)
 
 		if err != nil || puzzleResponse.Id == "" {
 			c.AbortWithStatus(http.StatusInternalServerError)

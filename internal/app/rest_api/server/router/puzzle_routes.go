@@ -7,9 +7,11 @@ import (
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/middlewares"
 )
 
-func InitializePuzzleRoutes(router *gin.Engine, puzzleClient puzzlesv1.PuzzlesServiceClient) {
-	router.GET("/puzzles/get", middlewares.ProtectedRoute(), handlers.CreatePuzzleRequest(puzzleClient))
-	router.POST("/puzzles/create")//admin
-	router.GET("/puzzles/get-by-id" )// admin
-	router.DELETE("/puzzles/delete")
+func initializePuzzleRoutes(router *gin.Engine, puzzleClient puzzlesv1.PuzzlesServiceClient) {
+	// use websockets later?
+	// 3 min timer needs to be in sync 
+	router.GET("/puzzles/", middlewares.ProtectedRoute(), handlers.CreatePuzzleRequest(puzzleClient))
+
+	router.POST("puzzles/save")
+
 }

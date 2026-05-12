@@ -52,7 +52,8 @@ func main() {
 	grpcServer := grpc.NewServer();
 
 	authCollection := repositories.GetUserAuthCollection()
-	authv1.RegisterAuthenticationServiceServer(grpcServer, authenticationgrpc.NewServer(redisClient, authCollection))
+	roleCollection := repositories.GetUserRoleCollection()
+	authv1.RegisterAuthenticationServiceServer(grpcServer, authenticationgrpc.NewServer(redisClient, authCollection, roleCollection))
 
 	healthServer := health.NewServer()
 	healthv1.RegisterHealthServer(grpcServer, healthServer);

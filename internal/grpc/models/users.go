@@ -9,6 +9,7 @@ var (
 	UserDatabaseName string = "user_database"
 	UserLoginCollection string = "user_login";
 	UserProfileCollection string = "user_profile"
+	UserRoleCollection string = "user_role"
 )
 
 type UserLogin struct {
@@ -17,6 +18,12 @@ type UserLogin struct {
 	Email string `bson:"email,omitempty"`
 	Hash string `bson:"hash,omitempty"`
 	UserID uuid.UUID `bson:"uuid,omitempty"` //SAME
+}
+
+type UserRole struct {
+	ID bson.ObjectID `bson:"_id,omitempty"`
+	UserID uuid.UUID `bson:"uuid,omitempty"` //SAME
+	Role string `bson:"role,omitempty"`
 }
 
 type UserProfile struct {

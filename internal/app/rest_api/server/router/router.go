@@ -7,7 +7,8 @@ import (
 )
 
 func InitializeRouter(router *gin.Engine, authClient authv1.AuthenticationServiceClient, puzzleClient puzzlesv1.PuzzlesServiceClient) {
-	InitializeTestRoutes(router, puzzleClient)
-	InitializeAuthRoutes(router, authClient);
-	InitializePuzzleRoutes(router, puzzleClient)
+	initializeTestRoutes(router, puzzleClient)
+	initializeAuthRoutes(router, authClient);
+	initializePuzzleRoutes(router, puzzleClient)
+	initializeAdminRoutes(router, puzzleClient)
 }

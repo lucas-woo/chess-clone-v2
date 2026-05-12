@@ -7,6 +7,6 @@ import (
 
 func GetPuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		
 	}
 }

@@ -1,11 +1,11 @@
-package authenticationgrpc
+package utils
 
 import (
 	"crypto/rand"
 	"encoding/base64"
 )
 
-func generateSessionId() (string, error) {
+func GenerateSessionId() (string, error) {
 
 	temp := make([]byte, 32)
 

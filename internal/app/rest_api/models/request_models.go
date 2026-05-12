@@ -16,6 +16,6 @@ type CreatePuzzleRequest struct {
 	Moves []string `json:"moves" binding:"required"`
 }
 
-type CreatePuzzleResponse struct {
-	Id string `json:"id" binding:"required"`
+type DeletePuzzleRequest struct {
+	Id string `json:"puzzle-id" binding:"required"`
 }

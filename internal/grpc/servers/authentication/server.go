@@ -3,11 +3,12 @@ package authenticationgrpc
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
+	// "fmt";
 
 	"github.com/google/uuid"
 	authv1 "github.com/lucas-woo/chess-clone-v2/api/authentication/v1"
+	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/utils"
 	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
 	redisclient "github.com/lucas-woo/chess-clone-v2/pkg/redis"
 	"github.com/redis/go-redis/v9"
@@ -22,6 +23,7 @@ type Server struct {
 	authv1.UnimplementedAuthenticationServiceServer; 
 	redisClient *redis.Client
 	userLoginCollection *mongo.Collection
+	userRoleCollection *mongo.Collection
 }
 
 func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUserRequest) (*authv1.SignUpUserResponse, error) {
@@ -31,13 +33,21 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	result, err := s.userLoginCollection.InsertOne(ctx, newUser);
 
+	result, err := s.userLoginCollection.InsertOne(ctx, newUser);
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	sessionId, err := generateSessionId()
+	_, err = s.userRoleCollection.InsertOne(ctx, &models.UserRole{
+		UserID: newUser.UserID,
+		Role: redisclient.UserRole,
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	sessionId, err := utils.GenerateSessionId()
 	if err != nil {
 		return nil, status.Error(codes.Internal, "")
 	}
@@ -50,8 +60,10 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 	
 	if signupRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60 * 24)
 	} else {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60)
 	}
 
 	return &authv1.SignUpUserResponse{
@@ -61,7 +73,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 }
 
 func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRequest) (*authv1.LoginUserResponse, error) {
-	user, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, loginRequest)
+	user, userRole, invalidInfoError, err := parseLoginUserRequest(ctx, s.userLoginCollection, s.userRoleCollection, loginRequest)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
@@ -69,7 +81,7 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 		return &authv1.LoginUserResponse{LoginError: authv1.LoginUserResponse_LOGIN_ERROR_INVALID_CREDENTIALS}, nil
 	}
 	
-	sessionId, err := generateSessionId()
+	sessionId, err := utils.GenerateSessionId()
 	if err != nil {
 		return nil, status.Error(codes.Internal, "")
 	}
@@ -78,8 +90,10 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 
 	if loginRequest.RememberMe {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60 * 24)
 	} else {
 		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60)
 	}
 	return &authv1.LoginUserResponse{
 		LoginError: authv1.LoginUserResponse_LOGIN_ERROR_UNSPECIFIED,
@@ -92,10 +106,14 @@ func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUse
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	_, err = s.redisClient.Del(ctx, sessionID).Result()
+	_, err = s.redisClient.Del(ctx, redisclient.SessionPrefix + sessionID).Result()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	_, err = s.redisClient.Del(ctx, redisclient.RolePrefix + sessionID).Result()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}	
 	return &authv1.LogoutUserResponse{
 		LoggedOut: true,
 	}, nil
@@ -132,7 +150,7 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 	}, nil
 }
 
-func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, error, error) {
+func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, userRoleCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, *models.UserRole, error, error) {
 	//this needs validation
 	var invalidInfoError error;
 	if loginRequest.Password == "" {
@@ -143,7 +161,7 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 	}
 
 	if invalidInfoError != nil {
-		return nil, invalidInfoError, nil
+		return nil,nil, invalidInfoError, nil
 	}
 
 	filter := bson.D{
@@ -152,13 +170,26 @@ func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Colle
 	var user models.UserLogin
 	err := userLoginCollection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return nil, invalidInfoError, err
+		return nil, nil,invalidInfoError, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(loginRequest.Password))
 	if err != nil {
-		return nil, errors.New("invalid_credentials"), nil
+		return nil, nil, errors.New("invalid_credentials"), nil
 	}
-	return &user, nil, nil
+
+	roleFilter := bson.D{
+		bson.E{
+			Key: "uuid",
+			Value: user.UserID,
+		},
+	}
+	var userRole models.UserRole
+	err = userRoleCollection.FindOne(ctx, roleFilter).Decode(&userRole)
+	if err != nil {
+		return nil, nil, invalidInfoError, err
+	}
+
+	return &user, &userRole, nil, nil
 }
 
 func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, error) {
@@ -167,16 +198,14 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 		err = errors.New("invalid_session_id")
 		return "", err
 	}
-	var sb strings.Builder;
-	sb.WriteString(redisclient.SessionPrefix)
-	sb.WriteString(logoutRequest.SessionId)
-	return sb.String(), err
+	return logoutRequest.SessionId, err
 }
 
 
-func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection) (*Server) {
+func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection, roleCollection *mongo.Collection) (*Server) {
 	return &Server{
 		redisClient: redisClient,
 		userLoginCollection: userLoginCollection,
+		userRoleCollection: roleCollection,
 	}
 }

@@ -12,6 +12,9 @@ import (
 
 var (
 	SessionPrefix string = "session:"
+	RolePrefix string = "role:"
+	AdminRole string = "1"
+	UserRole string = "2"
 )
 
 func ConnectRedis() (*redis.Client, error) {

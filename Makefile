@@ -20,5 +20,5 @@ run-client: cmd/client/main.go
 run-auth-test: cmd/servers/test/auth/main.go
 	go run cmd/servers/test/auth/main.go;
 
-run-puzzle-test: cmd/servers/test/puzzle/main.go
-	go run cmd/servers/test/puzzle/main.go;
+run-admin-test: cmd/servers/test/admin/main.go
+	go run cmd/servers/test/admin/main.go;

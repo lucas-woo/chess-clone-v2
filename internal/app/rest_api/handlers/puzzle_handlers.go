@@ -24,7 +24,7 @@ func PlayPuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return			
 		}
-		playerPool.JoinGame(conn)
+		playerPool.JoinGame(conn, c)
 
 	}
 }

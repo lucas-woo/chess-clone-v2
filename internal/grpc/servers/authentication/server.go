@@ -23,6 +23,7 @@ type Server struct {
 	authv1.UnimplementedAuthenticationServiceServer; 
 	redisClient *redis.Client
 	userLoginCollection *mongo.Collection
+	userProfileCollection *mongo.Collection
 	userRoleCollection *mongo.Collection
 }
 
@@ -34,7 +35,7 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	result, err := s.userLoginCollection.InsertOne(ctx, newUser);
+	_, err = s.userLoginCollection.InsertOne(ctx, newUser);
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -52,17 +53,12 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		return nil, status.Error(codes.Internal, "")
 	}
 
-	id, ok := result.InsertedID.(bson.ObjectID)
-	if !ok {
-		return nil, status.Error(codes.Internal, "")
-	}
-	createdID := id.Hex()
 	
 	if signupRequest.RememberMe {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, newUser.UserID.String(), time.Second * 60 * 60 * 24)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60 * 24)
 	} else {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, newUser.UserID.String(), time.Second * 60 * 60)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60)
 	}
 
@@ -86,13 +82,11 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 		return nil, status.Error(codes.Internal, "")
 	}
 
-	userID :=  user.ID.Hex()
-
 	if loginRequest.RememberMe {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, user.UserID.String(), time.Second * 60 * 60 * 24)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60 * 24)
 	} else {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, user.UserID.String(), time.Second * 60 * 60)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60)
 	}
 	return &authv1.LoginUserResponse{
@@ -202,10 +196,11 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 }
 
 
-func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection, roleCollection *mongo.Collection) (*Server) {
+func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection, roleCollection *mongo.Collection, userProfileCollection *mongo.Collection) (*Server) {
 	return &Server{
 		redisClient: redisClient,
 		userLoginCollection: userLoginCollection,
 		userRoleCollection: roleCollection,
+		userProfileCollection: userProfileCollection,
 	}
 }

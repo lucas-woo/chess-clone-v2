@@ -3,7 +3,8 @@ package websocket
 import (
 	"context"
 	"strconv"
-
+	"time"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
@@ -14,10 +15,21 @@ type Game struct {
 	add chan struct{}
 }
 
-func (g *Game) RunGame(ctx context.Context) {
+func NewGame (conn *websocket.Conn, gamePool *GamePool) *Game {
+	return &Game{
+		socket: conn,
+		gamePool: gamePool,
+		currentLevel: 0,
+		add: make(chan struct{}),
+	}
+}
+
+func (g *Game) RunGame(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), time.Minute * 3)
 	defer func ()  {
 		g.gamePool.leave <- g;
 		g.socket.Close()
+		cancel()
 		//save current Level
 		//let go of channels
 		//need to save progress

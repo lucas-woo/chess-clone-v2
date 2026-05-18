@@ -11,6 +11,7 @@ import (
 type GamePool struct {
 	games map[*Game]bool
 	leave chan *Game
+	mu sync.Mutex
 }
 
 var (
@@ -42,6 +43,10 @@ func (g *GamePool) run() {
 	}
 }
 
-func (g *GamePool) JoinGame(conn *websocket.Conn, ctx *gin.Context) {
-	
+func (g *GamePool) JoinGame(conn *websocket.Conn, c *gin.Context) {
+	newGame := NewGame(conn, g)
+	go newGame.RunGame(c )
+	g.mu.Lock()
+	g.games[newGame] = true
+	g.mu.Unlock()
 }

@@ -18,8 +18,13 @@ func PlayPuzzle(puzzleClient puzzlesv1.PuzzlesServiceClient) gin.HandlerFunc {
 			return
 		}
 
-		
+		playerPool, err := websocket.GetGamePool();
 
+		if err != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return			
+		}
+		playerPool.JoinGame(conn)
 
 	}
 }

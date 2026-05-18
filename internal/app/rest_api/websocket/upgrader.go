@@ -3,11 +3,11 @@ package websocket
 import "github.com/gorilla/websocket"
 
 const (
-	ReadBufferSize int = 1024
-	WriteBufferSize int = 1024
+	readBufferSize int = 1024
+	writeBufferSize int = 1024
 )
 
 var Upgrader = websocket.Upgrader{
-	ReadBufferSize: ReadBufferSize,
-	WriteBufferSize: WriteBufferSize,
+	ReadBufferSize: readBufferSize,
+	WriteBufferSize: writeBufferSize,
 }

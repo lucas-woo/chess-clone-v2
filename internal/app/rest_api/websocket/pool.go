@@ -38,6 +38,7 @@ func NewGamePool () *GamePool {
 }
 
 func (g *GamePool) run() {
+	defer close(g.leave)
 	for game := range g.leave {
 		delete(g.games, game)
 	}
@@ -45,7 +46,7 @@ func (g *GamePool) run() {
 
 func (g *GamePool) JoinGame(conn *websocket.Conn, c *gin.Context) {
 	newGame := NewGame(conn, g)
-	go newGame.RunGame(c )
+	go newGame.RunGame(c)
 	g.mu.Lock()
 	g.games[newGame] = true
 	g.mu.Unlock()

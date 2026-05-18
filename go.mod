@@ -72,6 +72,7 @@ require (
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/cel-go v0.26.1 // indirect
 	github.com/google/go-containerregistry v0.20.7 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jdx/go-netrc v1.0.0 // indirect

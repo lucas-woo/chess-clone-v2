@@ -42,6 +42,6 @@ func (g *GamePool) run() {
 	}
 }
 
-func (p *GamePool) JoinGame(conn *websocket.Conn, ctx *gin.Context) {
+func (g *GamePool) JoinGame(conn *websocket.Conn, ctx *gin.Context) {
 	
 }

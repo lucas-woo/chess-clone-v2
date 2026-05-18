@@ -4,7 +4,7 @@ option go_package = "github.com/lucas-woo/chess-clone-v2/api/users/v1/usersv1";
 
 package users.v1;
 
-import "puzzles/v1/users.proto";
+import "users/v1/users.proto";
 
 service UsersService {
 
@@ -12,7 +12,7 @@ service UsersService {
 
   rpc GetMyProfile(GetMyProfileRequest) returns (GetMyProfileResponse);
 
-  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileReseponse);
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
 
   rpc SaveUserScore(SaveUserScoreRequest) returns (SaveUserScoreResponse);
   

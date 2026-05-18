@@ -29,5 +29,6 @@ type UserRole struct {
 type UserProfile struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`
 	UserID uuid.UUID `bson:"uuid,omitempty"` // SAME
+	HighScore uint32 `bson:"highScore,omitempty"`
 	//highscore
 }

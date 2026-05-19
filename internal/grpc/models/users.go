@@ -14,7 +14,6 @@ var (
 
 type UserLogin struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`
-	Username string `bson:"username,omitempty"`
 	Email string `bson:"email,omitempty"`
 	Hash string `bson:"hash,omitempty"`
 	UserID uuid.UUID `bson:"uuid,omitempty"` //SAME
@@ -29,6 +28,7 @@ type UserRole struct {
 type UserProfile struct {
 	ID bson.ObjectID `bson:"_id,omitempty"`
 	UserID uuid.UUID `bson:"uuid,omitempty"` // SAME
+	Username string `bson:"username,omitempty"`
 	HighScore uint32 `bson:"highScore,omitempty"`
 	//highscore
 }

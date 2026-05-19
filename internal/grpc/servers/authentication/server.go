@@ -29,13 +29,18 @@ type Server struct {
 
 func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUserRequest) (*authv1.SignUpUserResponse, error) {
 
-	newUser, err := parseSignUpUserRequest(signupRequest)
+	newUser, newProfile, err := parseSignUpUserRequest(signupRequest)
 	
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	_, err = s.userLoginCollection.InsertOne(ctx, newUser);
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	_, err = s.userProfileCollection.InsertOne(ctx, newProfile)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -114,7 +119,7 @@ func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUse
 }
 
 
-func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.UserLogin, error) {
+func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.UserLogin, *models.UserProfile, error) {
 	var err error
 	//gotta add validation later, this isn't good
 	if len(signupRequest.Email) == 0 {
@@ -130,18 +135,23 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 		err = errors.Join(err, newErr)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(signupRequest.Password), bcrypt.DefaultCost)
-
-	//gotta also double check if the username isn't taken, can't trust rest api
+	userID := uuid.New()
+	//gotta also double check if the username isn't taken
  	return &models.UserLogin{
-		Username: signupRequest.Username,
 		Hash: string(hash),
 		Email: signupRequest.Email,
-		UserID: uuid.New(),
-	}, nil
+		UserID: userID,
+	}, 
+	&models.UserProfile{
+		UserID: userID,
+		Username: signupRequest.Username,
+		HighScore: 0,
+	},
+	nil
 }
 
 func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, userRoleCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, *models.UserRole, error, error) {

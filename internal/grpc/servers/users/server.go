@@ -37,7 +37,7 @@ func (s *Server) UpdateUserProfile(ctx context.Context, req *usersv1.UpdateUserP
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserProfile not implemented")
 }
 
-func parseSaveUserScoreRequest(req *usersv1.SaveUserScoreRequest) (int32, error) {
+func parseSaveUserScoreRequest(req *usersv1.SaveUserScoreRequest) (uint32, error) {
 	return req.Score, nil
 }
 

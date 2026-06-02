@@ -18,5 +18,12 @@ func main() {
 	profileClient := client.CreateGRPCProfileClient()
 	ctx := context.Background()
 
-
+	res, err := profileClient.SaveUserScore(ctx, &usersv1.SaveUserScoreRequest{
+		Score: 4,
+		UserId: "",
+	})
+	if err != nil {
+		log.Fatal("err")
+	}
+	fmt.Println(res.Updated)
 }

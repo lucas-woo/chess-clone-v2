@@ -2,8 +2,12 @@ package usersgrpc
 
 import (
 	"context"
+	"errors"
 
+	"github.com/google/uuid"
 	usersv1 "github.com/lucas-woo/chess-clone-v2/api/users/v1"
+	"github.com/lucas-woo/chess-clone-v2/internal/grpc/models"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,7 +27,27 @@ func (s *Server) SaveUserScore(ctx context.Context, req *usersv1.SaveUserScoreRe
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	var userProfile models.UserProfile
+
+	userId, err := uuid.Parse(req.UserId)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	filter := bson.D{
+		bson.E{Key: "", Value: userId},
+	}
+
+	err = s.userProfileCollection.FindOne(ctx, filter).Decode(&userProfile)
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	
 	//check score if score is higher than current profile 
+
 
 	return nil, status.Errorf(codes.Unimplemented, "method SaveUserScore not implemented")
 }
@@ -42,7 +66,9 @@ func (s *Server) UpdateUserProfile(ctx context.Context, req *usersv1.UpdateUserP
 }
 
 func parseSaveUserScoreRequest(req *usersv1.SaveUserScoreRequest) (uint32, error) {
-	//find profile and update score if bigger
+	if req.Score <= 0 {
+		return 0, errors.New("")
+	}
 	return req.Score, nil
 }
 

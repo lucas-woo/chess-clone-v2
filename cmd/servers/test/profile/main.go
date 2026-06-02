@@ -17,13 +17,14 @@ func main() {
 	}
 	profileClient := client.CreateGRPCProfileClient()
 	ctx := context.Background()
-
+	fmt.Println("here")
 	res, err := profileClient.SaveUserScore(ctx, &usersv1.SaveUserScoreRequest{
-		Score: 4,
-		UserId: "",
+		Score: 11,
+		UserId: "",// replaced uuid
 	})
 	if err != nil {
-		log.Fatal("err")
+		fmt.Println("err")
+		return
 	}
 	fmt.Println(res.Updated)
 }

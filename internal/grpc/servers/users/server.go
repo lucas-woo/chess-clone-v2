@@ -21,7 +21,7 @@ type Server struct {
 
 func (s *Server) SaveUserScore(ctx context.Context, req *usersv1.SaveUserScoreRequest) (*usersv1.SaveUserScoreResponse, error) {
 
-	_, err := parseSaveUserScoreRequest(req);
+	score, err := parseSaveUserScoreRequest(req);
 
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -45,7 +45,7 @@ func (s *Server) SaveUserScore(ctx context.Context, req *usersv1.SaveUserScoreRe
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if req.Score <= userProfile.HighScore {
+	if score <= userProfile.HighScore {
 		return &usersv1.SaveUserScoreResponse{
 			Updated: false,
 		}, nil
@@ -57,15 +57,16 @@ func (s *Server) SaveUserScore(ctx context.Context, req *usersv1.SaveUserScoreRe
 		bson.E{Key: "_id", Value: userProfile.ID},
 	}
 	
-	update := bson.D{
-		bson.E{Key: "highScore", Value: userProfile.ID},
+	update := bson.M{
+		"$set": bson.M{"highScore": score},
 	}
+
 	err = s.userProfileCollection.FindOneAndUpdate(ctx, searchFilter, update).Decode(&updatedProfile)
 
-	if err != nil || updatedProfile.HighScore != req.Score {
+	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	
+
 	return &usersv1.SaveUserScoreResponse{
 		Updated: true,
 	}, nil

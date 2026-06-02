@@ -36,7 +36,7 @@ func (s *Server) SaveUserScore(ctx context.Context, req *usersv1.SaveUserScoreRe
 	}
 
 	filter := bson.D{
-		bson.E{Key: "", Value: userId},
+		bson.E{Key: "uuid", Value: userId},
 	}
 
 	err = s.userProfileCollection.FindOne(ctx, filter).Decode(&userProfile)
@@ -45,11 +45,31 @@ func (s *Server) SaveUserScore(ctx context.Context, req *usersv1.SaveUserScoreRe
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	if req.Score <= userProfile.HighScore {
+		return &usersv1.SaveUserScoreResponse{
+			Updated: false,
+		}, nil
+	}
+
+	var updatedProfile models.UserProfile
+
+	searchFilter := bson.D{
+		bson.E{Key: "_id", Value: userProfile.ID},
+	}
 	
-	//check score if score is higher than current profile 
+	update := bson.D{
+		bson.E{Key: "highScore", Value: userProfile.ID},
+	}
+	err = s.userProfileCollection.FindOneAndUpdate(ctx, searchFilter, update).Decode(&updatedProfile)
 
+	if err != nil || updatedProfile.HighScore != req.Score {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	
+	return &usersv1.SaveUserScoreResponse{
+		Updated: true,
+	}, nil
 
-	return nil, status.Errorf(codes.Unimplemented, "method SaveUserScore not implemented")
 }
 
 //implement later

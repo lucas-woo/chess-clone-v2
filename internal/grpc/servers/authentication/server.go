@@ -23,18 +23,24 @@ type Server struct {
 	authv1.UnimplementedAuthenticationServiceServer; 
 	redisClient *redis.Client
 	userLoginCollection *mongo.Collection
+	userProfileCollection *mongo.Collection
 	userRoleCollection *mongo.Collection
 }
 
 func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUserRequest) (*authv1.SignUpUserResponse, error) {
 
-	newUser, err := parseSignUpUserRequest(signupRequest)
+	newUser, newProfile, err := parseSignUpUserRequest(signupRequest)
 	
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	result, err := s.userLoginCollection.InsertOne(ctx, newUser);
+	_, err = s.userLoginCollection.InsertOne(ctx, newUser);
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	_, err = s.userProfileCollection.InsertOne(ctx, newProfile)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -52,17 +58,12 @@ func (s *Server) SignUpUser(ctx context.Context, signupRequest *authv1.SignUpUse
 		return nil, status.Error(codes.Internal, "")
 	}
 
-	id, ok := result.InsertedID.(bson.ObjectID)
-	if !ok {
-		return nil, status.Error(codes.Internal, "")
-	}
-	createdID := id.Hex()
 	
 	if signupRequest.RememberMe {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, newUser.UserID.String(), time.Second * 60 * 60 * 24)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60 * 24)
 	} else {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, createdID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, newUser.UserID.String(), time.Second * 60 * 60)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, redisclient.UserRole, time.Second * 60 * 60)
 	}
 
@@ -86,13 +87,11 @@ func (s *Server) LoginUser(ctx context.Context, loginRequest *authv1.LoginUserRe
 		return nil, status.Error(codes.Internal, "")
 	}
 
-	userID :=  user.ID.Hex()
-
 	if loginRequest.RememberMe {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60 * 24)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, user.UserID.String(), time.Second * 60 * 60 * 24)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60 * 24)
 	} else {
-		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, userID, time.Second * 60 * 60)
+		s.redisClient.Set(ctx, redisclient.SessionPrefix + sessionId, user.UserID.String(), time.Second * 60 * 60)
 		s.redisClient.Set(ctx, redisclient.RolePrefix + sessionId, userRole.Role, time.Second * 60 * 60)
 	}
 	return &authv1.LoginUserResponse{
@@ -120,7 +119,7 @@ func (s *Server) LogoutUser(ctx context.Context, logoutRequest *authv1.LogoutUse
 }
 
 
-func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.UserLogin, error) {
+func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.UserLogin, *models.UserProfile, error) {
 	var err error
 	//gotta add validation later, this isn't good
 	if len(signupRequest.Email) == 0 {
@@ -136,18 +135,23 @@ func parseSignUpUserRequest(signupRequest *authv1.SignUpUserRequest) (*models.Us
 		err = errors.Join(err, newErr)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(signupRequest.Password), bcrypt.DefaultCost)
-
-	//gotta also double check if the username isn't taken, can't trust rest api
+	userID := uuid.New()
+	//gotta also double check if the username isn't taken
  	return &models.UserLogin{
-		Username: signupRequest.Username,
 		Hash: string(hash),
 		Email: signupRequest.Email,
-		UserID: uuid.New(),
-	}, nil
+		UserID: userID,
+	}, 
+	&models.UserProfile{
+		UserID: userID,
+		Username: signupRequest.Username,
+		HighScore: 0,
+	},
+	nil
 }
 
 func parseLoginUserRequest(ctx context.Context, userLoginCollection *mongo.Collection, userRoleCollection *mongo.Collection, loginRequest *authv1.LoginUserRequest) (*models.UserLogin, *models.UserRole, error, error) {
@@ -202,10 +206,11 @@ func parseLogoutUserRequest(logoutRequest *authv1.LogoutUserRequest) (string, er
 }
 
 
-func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection, roleCollection *mongo.Collection) (*Server) {
+func NewServer(redisClient *redis.Client, userLoginCollection *mongo.Collection, roleCollection *mongo.Collection, userProfileCollection *mongo.Collection) (*Server) {
 	return &Server{
 		redisClient: redisClient,
 		userLoginCollection: userLoginCollection,
 		userRoleCollection: roleCollection,
+		userProfileCollection: userProfileCollection,
 	}
 }

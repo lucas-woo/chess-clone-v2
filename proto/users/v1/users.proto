@@ -1,0 +1,44 @@
+syntax="proto3";
+
+option go_package = "github.com/lucas-woo/chess-clone-v2/api/users/v1/usersv1";
+
+import "google/protobuf/timestamp.proto";
+
+package users.v1;
+
+
+message SaveUserScoreRequest {
+  string user_id = 1;
+  uint32 score = 2;
+}
+
+message SaveUserScoreResponse {
+  bool updated = 1;
+}
+
+message GetUserProfileRequest {
+  string username = 1;
+}
+
+message GetUserProfileResponse {
+  string username = 1;
+  string profile_picture = 2;
+  uint32 high_score = 3;
+  google.protobuf.Timestamp joined_date = 4;
+}
+
+message GetMyProfileRequest {
+
+}
+
+message GetMyProfileResponse {
+
+}
+
+message UpdateUserProfileRequest {
+
+}
+
+message UpdateUserProfileResponse {
+
+}

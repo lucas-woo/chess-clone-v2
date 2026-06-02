@@ -34,11 +34,11 @@ func main() {
 	fmt.Println(res.SessionId)
 
 
-	res2, err2 := client.LogoutUser(ctx, &authv1.LogoutUserRequest{
-		SessionId: res.SessionId,
-	})
-	if err2 != nil {
-		log.Fatal("err logout\n\n")
-	}
-	fmt.Println(res2)	
+	// res2, err2 := client.LogoutUser(ctx, &authv1.LogoutUserRequest{
+	// 	SessionId: res.SessionId,
+	// })
+	// if err2 != nil {
+	// 	log.Fatal("err logout\n\n")
+	// }
+	// fmt.Println(res2)	
 }

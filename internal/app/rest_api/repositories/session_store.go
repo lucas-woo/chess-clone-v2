@@ -11,21 +11,16 @@ import (
 
 
 
-func ValidateSessionID(ctx context.Context, sessionID string) (bool, error) {
+func ValidateSessionID(ctx context.Context, sessionID string) (string, error) {
 	
-	_, err := config.RedisClient.Get(ctx, redisclient.SessionPrefix + sessionID).Result()
+	userId, err := config.RedisClient.Get(ctx, redisclient.SessionPrefix + sessionID).Result()
 
-	if err == redis.Nil {
-		return false, nil
+	if err == redis.Nil || err != nil{
+		return "", errors.New("")
 	}
 
-	if err != nil {
-		return false, err	
-	}
-
-	return true, nil
+	return userId, nil	
 }
-
 
 
 func GetUserRole (ctx context.Context, sessionID string) (string, error) {

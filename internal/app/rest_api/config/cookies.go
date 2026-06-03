@@ -8,6 +8,7 @@ import (
 
 var (
 	CookieSessionIDString string
+	CookieUserId string
 	CookieSessionMaxAge int
 	CookieSessionPath string
 	CookieSessionDomain string
@@ -16,6 +17,12 @@ var (
 )
 
 func InitCookiesEnv() {
+
+	userId, found := os.LookupEnv("COOKIE_USER_ID")
+	if !found {
+		log.Fatal("error getting cookie env")
+	}
+	CookieUserId = userId;	
 
 	sessID, found := os.LookupEnv("COOKIE_SESSION_ID_STRING")
 	if !found {

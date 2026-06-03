@@ -12,20 +12,18 @@ import (
 
 func IsAlreadyLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		
 		sessionID, err := c.Cookie(config.CookieSessionIDString);
 		
 		if err != nil {
 			c.Next()
 			return 
 		}
-		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionID);
+
+		_, err = repositories.ValidateSessionID(c.Request.Context(), sessionID);
 
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
-			return
-		}
-		if isValid {
-			c.AbortWithStatus(http.StatusContinue)
 			return
 		}
 		c.Next()
@@ -42,19 +40,15 @@ func ProtectedRoute() gin.HandlerFunc {
 			return 
 		}
 
-		isValid, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
+		userId, err := repositories.ValidateSessionID(c.Request.Context(), sessionId);
 
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 
-		if !isValid {
-			c.AbortWithStatus(http.StatusBadRequest)
-			return 
-		}
-
 		c.Set(config.CookieSessionIDString, sessionId)
+		c.Set(config.CookieUserId, userId)
 
 		c.Next()
 	}

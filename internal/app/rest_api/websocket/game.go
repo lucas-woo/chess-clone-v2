@@ -15,6 +15,10 @@ type Game struct {
 	userId string
 }
 
+type GameMessage struct {
+	Message string `json:"message"`
+}
+
 func NewGame (conn *websocket.Conn, gamePool *GamePool, userId string) *Game {
 	return &Game{
 		socket: conn,
@@ -30,23 +34,43 @@ func (g *Game) RunGame(c *gin.Context) {
 	defer cancel()
 
 	go func() {
-		<- ctx.Done()
-		g.gamePool.leave <- g;
+		<-ctx.Done()
 
-		err := g.socket.WriteMessage(websocket.TextMessage, []byte("start"))
+		g.gamePool.leave <- g;
+		
+		err := g.socket.WriteJSON(&GameMessage{
+			Message: string(g.currentLevel),
+		})
 		if err != nil {
-			return
-		}		
+			g.socket.Close()
+			return 
+		}
+
+		//save in server
+
+		g.socket.Close()
 
 	}()
 
-	err := g.socket.WriteMessage(websocket.TextMessage, []byte("start"))
+	err := g.socket.WriteJSON(&GameMessage{
+		Message: "start",
+	})
 	if err != nil {
 		return
 	}
 
 	for {
-		
+		var msg GameMessage
+		err := g.socket.ReadJSON(&msg)
+		if err != nil {
+			return
+		}
+		if msg.Message != "next" {
+			return
+		}
+		g.currentLevel++;
+
+
 	}
 
 }

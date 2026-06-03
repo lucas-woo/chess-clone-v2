@@ -6,6 +6,7 @@ import (
 	"github.com/lucas-woo/chess-clone-v2/internal/app/rest_api/server/router"
 	puzzleclient "github.com/lucas-woo/chess-clone-v2/internal/grpc/servers/puzzles/create"
 	authclient "github.com/lucas-woo/chess-clone-v2/internal/grpc/servers/authentication/create"
+	usersclient "github.com/lucas-woo/chess-clone-v2/internal/grpc/servers/users/create"
 );
 
 
@@ -21,7 +22,9 @@ func CreateServer() *gin.Engine {
 
 	authServer := authclient.CreateGRPCAuthClient()
 
-	router.InitializeRouter(newServer, authServer, puzzleServer)
+	profileServer := usersclient.CreateGRPCProfileClient()
+
+	router.InitializeRouter(newServer, authServer, puzzleServer, profileServer)
 
 	return newServer;
 }

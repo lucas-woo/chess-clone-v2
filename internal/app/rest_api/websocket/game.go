@@ -2,10 +2,12 @@ package websocket
 
 import (
 	"context"
-	"strconv"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	puzzlesv1 "github.com/lucas-woo/chess-clone-v2/api/puzzles/v1"
+	usersv1 "github.com/lucas-woo/chess-clone-v2/api/users/v1"
 )
 
 type Game struct { 
@@ -28,7 +30,7 @@ func NewGame (conn *websocket.Conn, gamePool *GamePool, userId string) *Game {
 	}
 }
 
-func (g *Game) RunGame(c *gin.Context) {
+func (g *Game) RunGame(c *gin.Context, puzzleClient puzzlesv1.PuzzlesServiceClient, profileClient usersv1.UsersServiceClient) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), time.Minute * 3)
 
 	defer cancel()
@@ -69,7 +71,9 @@ func (g *Game) RunGame(c *gin.Context) {
 			return
 		}
 		g.currentLevel++;
-
+		if g.currentLevel % 5 == 0 {
+			//send req and send client
+		}
 
 	}
 
